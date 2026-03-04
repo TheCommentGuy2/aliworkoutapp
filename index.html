@@ -2889,7 +2889,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `ali-hq-backup-${getLocalDateStr()}.json`;
+        a.download = `hq-backup-${getLocalDateStr()}.json`;
         a.click();
         URL.revokeObjectURL(url);
         showToast(
