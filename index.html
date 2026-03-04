@@ -1158,7 +1158,7 @@
     <!-- TOP NAV -->
     <div class="top-nav">
       <button class="nav-btn" onclick="openPRModal()" title="Personal Records">
-        🏅
+        <img src="best.png" style="width: 22px; height: 22px" />
       </button>
       <button
         class="nav-btn settings"
@@ -1359,8 +1359,7 @@
           <div class="note-icon">⚡</div>
           <div class="note-title">Concentric Focus</div>
           <div class="note-body">
-            Explosive up and down. Do not rest at the top or bottom of
-            the rep.
+            Explosive up and down. Do not rest at the top or bottom of the rep.
           </div>
         </div>
         <div class="note-card">
@@ -1401,8 +1400,7 @@
             type="text"
             id="setup-name"
             class="form-control"
-            placeholder="e.g. Ali"
-            value="Ali"
+            placeholder="Enter Display Name"
           />
         </div>
         <div class="form-group">
@@ -1670,6 +1668,54 @@
           train.
         </div>
         <div id="pr-list"></div>
+      </div>
+    </div>
+
+    <!-- RESET TODAY MODAL -->
+    <div class="modal-overlay" id="reset-today-modal">
+      <div class="modal-box" style="max-width: 440px">
+        <img
+          src="bin.png"
+          style="width: 48px; height: 48px; display: block; margin: 0 auto 16px"
+        />
+        <div class="modal-header" style="text-align: center">
+          Reset Today's Log?
+        </div>
+        <div class="modal-sub" style="text-align: center">
+          This will clear all reps logged today and unlock the session.<br /><br />
+          Your progression levels won't be downgraded — but you'll need to
+          <strong>re-enter your reps</strong> and
+          <strong>finish &amp; lock the session again</strong> when done.<br /><br />
+          <span style="color: var(--dim); font-size: 12px"
+            >History for today will be reset to zero until you lock again.</span
+          >
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 8px">
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px; font-size: 13px"
+            onclick="
+              document
+                .getElementById('reset-today-modal')
+                .classList.remove('show')
+            "
+          >
+            Cancel
+          </button>
+          <button
+            class="save-btn"
+            style="
+              flex: 1;
+              margin: 0;
+              background: rgba(255, 77, 46, 0.15);
+              color: var(--push);
+              border: 1px solid rgba(255, 77, 46, 0.3);
+            "
+            onclick="confirmResetToday()"
+          >
+            Yes, Reset Today
+          </button>
+        </div>
       </div>
     </div>
 
@@ -2105,7 +2151,7 @@
       // ============================================================
       let appState = {
         onboarded: false,
-        name: "Ali",
+        name: "",
         split: "default",
         date: "",
         reps: {},
@@ -2264,7 +2310,7 @@
 
       function openSettings(isFirst = false) {
         isMandatoryOnboard = isFirst;
-        document.getElementById("setup-name").value = appState.name || "Ali";
+        document.getElementById("setup-name").value = appState.name || "";
         document.getElementById("setup-split").value =
           appState.split || "default";
         document.getElementById("close-modal-btn").style.display = isFirst
@@ -2282,7 +2328,7 @@
 
       function saveSettings() {
         const nameVal =
-          document.getElementById("setup-name").value.trim() || "Ali";
+          document.getElementById("setup-name").value.trim() || "Athlete";
         const splitVal = document.getElementById("setup-split").value;
 
         appState.name = nameVal;
@@ -2340,7 +2386,7 @@
         localStorage.removeItem("hq_workout_state");
         appState = {
           onboarded: false,
-          name: "Ali",
+          name: "",
           split: "default",
           date: "",
           reps: {},
@@ -2358,12 +2404,10 @@
       }
 
       function resetToday() {
-        if (
-          !confirm(
-            "Reset all reps logged today? Variations will not be downgraded.",
-          )
-        )
-          return;
+        document.getElementById("reset-today-modal").classList.add("show");
+      }
+
+      function confirmResetToday() {
         Object.values(EXERCISES)
           .flat()
           .forEach((ex) => {
@@ -2373,6 +2417,7 @@
         appState.history[getLocalDateStr()] = 0;
         saveState();
         initUI();
+        document.getElementById("reset-today-modal").classList.remove("show");
         showToast(
           "🔄",
           `<strong>Log Reset</strong><br>Today's numbers cleared. Start fresh.`,
@@ -2508,8 +2553,8 @@
         if (prMessages.length > 0) {
           setTimeout(() => {
             showToast(
-              "🏅",
-              `<strong>New PRs this session!</strong><br>${prMessages.join("<br>")}`,
+              "<img src='best.png' style='width:24px;height:24px;'>",
+              `<strong>New PRs this session!</strong>...`,
             );
           }, 2000);
         }
@@ -2526,7 +2571,7 @@
 
         if (keys.length === 0) {
           list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.6;">
-      <div style="font-size:32px;margin-bottom:12px;opacity:0.3">🏅</div>
+      <img src="best.png" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:0.3;">
       <strong style="color:var(--dim);display:block;margin-bottom:6px">No records yet</strong>
       Start logging reps to track your personal bests here.
     </div>`;
@@ -3037,7 +3082,7 @@
       let toastTimer;
       function showToast(icon, msg) {
         const t = document.getElementById("toast");
-        document.getElementById("toast-icon").textContent = icon;
+        document.getElementById("toast-icon").innerHTML = icon;
         document.getElementById("toast-msg").innerHTML = msg;
         t.classList.add("show");
         clearTimeout(toastTimer);
