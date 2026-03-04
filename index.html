@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Personal Training HQ</title>
+    <title>enduranceXworkout</title>
+    <link rel="icon" type="image/png" href="box.png">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Outfit:wght@300;400;500;600&display=swap"
@@ -54,13 +55,17 @@
         opacity: 0.4;
       }
 
+      /* NAV */
       .top-nav {
         position: absolute;
         top: 30px;
         right: 40px;
         z-index: 10;
+        display: flex;
+        gap: 10px;
+        align-items: center;
       }
-      .settings-btn {
+      .nav-btn {
         background: var(--s1);
         border: 1px solid var(--border);
         color: var(--dim);
@@ -74,12 +79,15 @@
         cursor: pointer;
         transition: all 0.2s;
       }
-      .settings-btn:hover {
+      .nav-btn:hover {
         color: var(--text);
         border-color: var(--muted);
+      }
+      .nav-btn.settings:hover {
         transform: rotate(30deg);
       }
 
+      /* HERO */
       .hero {
         position: relative;
         min-height: 100vh;
@@ -89,7 +97,6 @@
         padding: 60px 40px 40px;
         overflow: hidden;
       }
-
       .hero-bg {
         position: absolute;
         inset: 0;
@@ -111,7 +118,6 @@
           );
         pointer-events: none;
       }
-
       .hero-grid {
         position: absolute;
         inset: 0;
@@ -125,7 +131,6 @@
         background-size: 60px 60px;
         pointer-events: none;
       }
-
       .hero-content {
         position: relative;
         z-index: 1;
@@ -149,7 +154,6 @@
         margin-bottom: 28px;
         animation: fadeUp 0.6s ease both;
       }
-
       .greeting-dot {
         width: 6px;
         height: 6px;
@@ -157,7 +161,6 @@
         background: var(--gold);
         animation: pulse 2s ease infinite;
       }
-
       @keyframes pulse {
         0%,
         100% {
@@ -178,7 +181,6 @@
         margin-bottom: 8px;
         animation: fadeUp 0.7s ease both 0.1s;
       }
-
       .hero-name {
         font-family: "Syne", sans-serif;
         font-size: clamp(56px, 12vw, 110px);
@@ -187,18 +189,15 @@
         letter-spacing: -2px;
         animation: fadeUp 0.8s ease both 0.15s;
       }
-
       .hero-name .user-name {
         background: linear-gradient(135deg, #fff 0%, #9aa0b0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
       }
-
       .hero-name .dot {
         color: var(--push);
       }
-
       .hero-tagline {
         margin-top: 24px;
         font-size: clamp(14px, 2vw, 17px);
@@ -207,7 +206,6 @@
         line-height: 1.7;
         animation: fadeUp 0.9s ease both 0.25s;
       }
-
       .hero-tagline em {
         font-style: normal;
         color: var(--text);
@@ -221,7 +219,6 @@
         margin-top: 40px;
         animation: fadeUp 1s ease both 0.35s;
       }
-
       .status-card {
         background: var(--s1);
         border: 1px solid var(--border);
@@ -233,7 +230,6 @@
         flex-direction: column;
         justify-content: center;
       }
-
       .status-label {
         font-size: 10px;
         letter-spacing: 2px;
@@ -277,6 +273,7 @@
         background: var(--border);
       }
 
+      /* MAIN */
       .main {
         max-width: 940px;
         margin: 0 auto;
@@ -375,6 +372,7 @@
         color: #000;
       }
 
+      /* GRAPH */
       .graph-section {
         margin-top: 20px;
         background: var(--s1);
@@ -440,8 +438,6 @@
         text-transform: uppercase;
         letter-spacing: 1px;
       }
-
-      /* GRAPH EMPTY STATE */
       .graph-empty {
         width: 100%;
         display: flex;
@@ -488,6 +484,7 @@
         border-color: var(--gold);
       }
 
+      /* WORKOUT BLOCKS */
       .workout-block {
         margin-top: 24px;
         background: var(--s1);
@@ -495,7 +492,6 @@
         border-radius: 16px;
         overflow: hidden;
       }
-
       .block-header {
         padding: 24px 28px;
         display: flex;
@@ -512,7 +508,6 @@
       .block-header:hover .block-toggle {
         opacity: 1;
       }
-
       .block-left {
         display: flex;
         align-items: center;
@@ -542,7 +537,6 @@
         color: var(--legs);
         border: 1px solid rgba(57, 255, 143, 0.25);
       }
-
       .block-title {
         font-family: "Syne", sans-serif;
         font-size: 26px;
@@ -568,7 +562,6 @@
         border-bottom: none;
         padding-bottom: 10px;
       }
-
       .ex-top {
         display: flex;
         align-items: flex-start;
@@ -586,8 +579,6 @@
         flex-wrap: wrap;
         margin-bottom: 4px;
       }
-
-      /* IMPROVED: Exercise name + category label */
       .ex-category {
         font-size: 9px;
         letter-spacing: 2px;
@@ -628,7 +619,6 @@
         margin-top: 6px;
       }
 
-      /* READINESS HINT — shows after session is complete */
       .readiness-hint {
         display: none;
         margin-top: 10px;
@@ -654,7 +644,7 @@
         align-items: center;
         gap: 6px;
         font-family: "Syne", sans-serif;
-        font-size: 22px;
+        font-size: 18px;
         font-weight: 700;
         white-space: nowrap;
         background: var(--s2);
@@ -664,6 +654,7 @@
         flex-shrink: 0;
       }
 
+      /* REP TRACKER */
       .rep-tracker {
         background: var(--s2);
         border: 1px solid var(--border);
@@ -674,7 +665,6 @@
         gap: 16px;
         flex-wrap: wrap;
       }
-
       .rt-label {
         font-size: 11px;
         letter-spacing: 2px;
@@ -682,14 +672,12 @@
         text-transform: uppercase;
         min-width: 70px;
       }
-
       .rep-sets {
         display: flex;
         gap: 10px;
         align-items: center;
         flex-wrap: wrap;
       }
-
       .set-input-wrap {
         display: flex;
         flex-direction: column;
@@ -701,7 +689,6 @@
         color: var(--muted);
         letter-spacing: 1px;
       }
-
       .rep-input {
         width: 60px;
         height: 44px;
@@ -769,6 +756,7 @@
         letter-spacing: 0.5px;
       }
 
+      /* NOTES */
       .notes-section {
         margin-top: 48px;
         display: grid;
@@ -804,7 +792,7 @@
         color: var(--dim);
       }
 
-      /* MODAL */
+      /* MODALS */
       .modal-overlay {
         position: fixed;
         inset: 0;
@@ -916,7 +904,23 @@
         color: var(--text);
       }
 
-      /* ONBOARDING PREVIEW TABLE */
+      /* SECTION DIVIDER inside settings modal */
+      .onboard-section-title {
+        font-size: 10px;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 28px 0 16px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+      }
+      .onboard-section-title:first-of-type {
+        margin-top: 8px;
+        border-top: none;
+        padding-top: 0;
+      }
+
+      /* PREVIEW TABLE */
       .preview-table {
         margin-top: 20px;
         background: var(--bg);
@@ -966,6 +970,7 @@
         color: var(--legs);
       }
 
+      /* FINISH BUTTON */
       .finish-area {
         margin: 30px 28px 10px;
         padding-top: 20px;
@@ -993,6 +998,7 @@
         box-shadow: 0 4px 20px rgba(255, 209, 102, 0.2);
       }
 
+      /* UPGRADE LIST */
       .upgrade-list {
         background: var(--bg);
         border: 1px solid var(--border);
@@ -1036,6 +1042,7 @@
         font-size: 13px;
       }
 
+      /* TOAST */
       .toast {
         position: fixed;
         bottom: 30px;
@@ -1148,9 +1155,13 @@
     </style>
   </head>
   <body>
+    <!-- TOP NAV -->
     <div class="top-nav">
+      <button class="nav-btn" onclick="openPRModal()" title="Personal Records">
+        🏅
+      </button>
       <button
-        class="settings-btn"
+        class="nav-btn settings"
         onclick="openSettings(false)"
         title="Setup & Settings"
       >
@@ -1158,6 +1169,7 @@
       </button>
     </div>
 
+    <!-- HERO -->
     <section class="hero">
       <div class="hero-bg"></div>
       <div class="hero-grid"></div>
@@ -1195,10 +1207,6 @@
             </div>
           </div>
           <div class="status-card">
-            <div class="status-card">
-              <div class="status-label">Streak</div>
-              <div class="status-val gold" id="streak-display">—</div>
-            </div>
             <div class="status-label">Split</div>
             <div
               class="status-val"
@@ -1224,7 +1232,9 @@
       </div>
     </section>
 
+    <!-- MAIN -->
     <div class="main">
+      <!-- WEEK STRIP -->
       <div class="week-section">
         <div class="sec-label">
           <span>Weekly Split</span>
@@ -1235,6 +1245,7 @@
         <div class="week-strip" id="week-strip"></div>
       </div>
 
+      <!-- VOLUME GRAPH -->
       <div class="graph-section">
         <div class="graph-header">
           <div style="display: flex; gap: 10px; align-items: center">
@@ -1272,6 +1283,7 @@
         <div class="graph-container" id="volume-graph"></div>
       </div>
 
+      <!-- PUSH BLOCK -->
       <div class="workout-block" id="block-push">
         <div
           class="block-header"
@@ -1279,7 +1291,7 @@
           id="header-push"
         >
           <div class="block-left">
-            <span class="block-day-badge push-badge">Monday · Push</span>
+            <span class="block-day-badge push-badge">Push Day</span>
             <span class="block-title">Push</span>
           </div>
           <span class="block-toggle" id="toggle-push">▾</span>
@@ -1289,6 +1301,7 @@
         </div>
       </div>
 
+      <!-- PULL BLOCK -->
       <div class="workout-block" id="block-pull">
         <div
           class="block-header"
@@ -1296,7 +1309,7 @@
           id="header-pull"
         >
           <div class="block-left">
-            <span class="block-day-badge pull-badge">Wednesday · Pull</span>
+            <span class="block-day-badge pull-badge">Pull Day</span>
             <span class="block-title">Pull</span>
           </div>
           <span class="block-toggle" id="toggle-pull">▾</span>
@@ -1306,6 +1319,7 @@
         </div>
       </div>
 
+      <!-- LEGS BLOCK -->
       <div class="workout-block" id="block-legs">
         <div
           class="block-header"
@@ -1313,7 +1327,7 @@
           id="header-legs"
         >
           <div class="block-left">
-            <span class="block-day-badge legs-badge">Friday · Legs</span>
+            <span class="block-day-badge legs-badge">Legs Day</span>
             <span class="block-title">Legs</span>
           </div>
           <span class="block-toggle" id="toggle-legs">▾</span>
@@ -1323,6 +1337,7 @@
         </div>
       </div>
 
+      <!-- PROTOCOL NOTES -->
       <div class="notes-section">
         <div class="note-card">
           <div class="note-icon">⏱️</div>
@@ -1334,10 +1349,10 @@
         </div>
         <div class="note-card">
           <div class="note-icon">🔥</div>
-          <div class="note-title">The Pump & Failure</div>
+          <div class="note-title">Chase 50</div>
           <div class="note-body">
-            Take sets to near failure (20–25+ reps). If you aren't feeling the
-            burn, your tempo is too slow.
+            Target 30–50 reps per set. Hit 50 in any set and you're ready to
+            level up that exercise.
           </div>
         </div>
         <div class="note-card">
@@ -1353,13 +1368,16 @@
           <div class="note-title">Grease the Groove</div>
           <div class="note-body">
             Low muscle damage allows for high frequency. Hit the volume targets
-            to graduate.
+            consistently to graduate.
           </div>
         </div>
       </div>
     </div>
+    <!-- end .main -->
 
-    <!-- SETTINGS MODAL -->
+    <!-- ============================================================ -->
+    <!-- SETTINGS / ONBOARDING MODAL                                  -->
+    <!-- ============================================================ -->
     <div class="modal-overlay" id="settings-modal">
       <div class="modal-box">
         <button
@@ -1371,11 +1389,12 @@
         </button>
         <div class="modal-header">HQ Setup & Calibration</div>
         <div class="modal-sub">
-          Pick the exercise variation you can actually hit for
-          <strong>high reps</strong>.<br />
-          Too easy? You'll graduate naturally. Too hard? Pick one step down.
+          For each exercise slot, pick the variation you can currently do for
+          <strong>30–50 reps</strong>.<br />
+          Too easy? You'll graduate at 50. Too hard? Drop one step.
         </div>
 
+        <!-- NAME + SPLIT -->
         <div class="form-group">
           <label>Operative Name</label>
           <input
@@ -1386,62 +1405,144 @@
             value="Ali"
           />
         </div>
-
         <div class="form-group">
           <label>Weekly Schedule</label>
           <select id="setup-split" class="form-control">
             <option value="default">Classic (3 Days: Mon/Wed/Fri)</option>
-            <option value="6day">Athlete (6 Days: PPLPPL - Rest Sun)</option>
+            <option value="6day">Athlete (6 Days: PPLPPL — Rest Sun)</option>
           </select>
         </div>
 
+        <!-- PUSH SLOTS -->
+        <div class="onboard-section-title">🔴 Push Day</div>
         <div class="form-group">
-          <label>Push — which can you do for 30+ reps?</label>
+          <label
+            >Vertical Push (Dip Family) — which can you do for 30–50
+            reps?</label
+          >
           <select
-            id="setup-push"
+            id="ob-push-vert"
             class="form-control"
             onchange="updateOnboardingPreview()"
-          >
-            <option value="0">Wall Push-ups (Easiest)</option>
-            <option value="1">Incline Push-ups</option>
-            <option value="2">Knee Push-ups</option>
-            <option value="3" selected>Regular Push-ups</option>
-            <option value="4">Wide Push-ups</option>
-            <option value="6">Archer Push-ups (Advanced)</option>
-          </select>
+          ></select>
         </div>
-
         <div class="form-group">
-          <label>Pull — which can you do for 20+ reps?</label>
+          <label
+            >Horizontal Push (Push-up Family) — which can you do for 30–50
+            reps?</label
+          >
           <select
-            id="setup-pull"
+            id="ob-push-horiz"
             class="form-control"
             onchange="updateOnboardingPreview()"
-          >
-            <option value="0">Door/Band Rows (Easiest)</option>
-            <option value="1" selected>Inverted Rows (High Angle)</option>
-            <option value="2">Inverted Rows (Low Angle)</option>
-            <option value="4">Pull-ups (Assisted/Band)</option>
-            <option value="6">Regular Pull-ups (Advanced)</option>
-          </select>
+          ></select>
         </div>
-
         <div class="form-group">
-          <label>Legs — which can you do for 50 reps?</label>
+          <label
+            >Overhead Press (Shoulder Family) — which can you do for 30–50 reps
+            or 30–60s hold?
+          </label>
           <select
-            id="setup-legs"
+            id="ob-push-shoulder"
             class="form-control"
             onchange="updateOnboardingPreview()"
+          ></select>
+        </div>
+        <div class="form-group">
+          <label
+            >Core — Push Day (which can you do for 30–50 reps or 30–60s
+            hold?)</label
           >
-            <option value="0">Glute Bridges (Easiest)</option>
-            <option value="2">Step-Ups</option>
-            <option value="3" selected>Bodyweight Squats</option>
-            <option value="7">Jump Squats</option>
-            <option value="8">Pistol Squats (Advanced)</option>
-          </select>
+          <select
+            id="ob-push-core"
+            class="form-control"
+            onchange="updateOnboardingPreview()"
+          ></select>
         </div>
 
-        <!-- LIVE PREVIEW of all assigned exercises -->
+        <!-- PULL SLOTS -->
+        <div class="onboard-section-title">🔵 Pull Day</div>
+        <div class="form-group">
+          <label
+            >Vertical Pull (Pull-up Family) — which can you do for 30–50
+            reps?</label
+          >
+          <select
+            id="ob-pull-vert"
+            class="form-control"
+            onchange="updateOnboardingPreview()"
+          ></select>
+        </div>
+        <div class="form-group">
+          <label
+            >Horizontal Pull (Row Family) — which can you do for 30–50
+            reps?</label
+          >
+          <select
+            id="ob-pull-horiz"
+            class="form-control"
+            onchange="updateOnboardingPreview()"
+          ></select>
+        </div>
+        <div class="form-group">
+          <label>Core — Pull Day (which can you do for 30–50 reps?)</label>
+          <select
+            id="ob-pull-core"
+            class="form-control"
+            onchange="updateOnboardingPreview()"
+          ></select>
+        </div>
+
+        <!-- LEGS SLOTS -->
+        <div class="onboard-section-title">🟢 Legs Day</div>
+        <div class="form-group">
+          <label>Squat (Bilateral) — which can you do for 30–50 reps?</label>
+          <select
+            id="ob-legs-squat"
+            class="form-control"
+            onchange="updateOnboardingPreview()"
+          ></select>
+        </div>
+        <div class="form-group">
+          <label
+            >Single-Leg Squat (Unilateral) — which can you do for 30–50
+            reps?</label
+          >
+          <select
+            id="ob-legs-single"
+            class="form-control"
+            onchange="updateOnboardingPreview()"
+          ></select>
+        </div>
+        <div class="form-group">
+          <label>Glute — which can you do for 30–50 reps?</label>
+          <select
+            id="ob-legs-glute"
+            class="form-control"
+            onchange="updateOnboardingPreview()"
+          ></select>
+        </div>
+        <div class="form-group">
+          <label>Calf — which can you do for 30–50 reps?</label>
+          <select
+            id="ob-legs-calf"
+            class="form-control"
+            onchange="updateOnboardingPreview()"
+          ></select>
+        </div>
+        <div class="form-group">
+          <label
+            >Core — Legs Day (which can you do for 30–50 reps or 30–60s
+            hold?)</label
+          >
+          <select
+            id="ob-legs-core"
+            class="form-control"
+            onchange="updateOnboardingPreview()"
+          ></select>
+        </div>
+
+        <!-- LIVE PREVIEW -->
         <div
           style="
             font-size: 11px;
@@ -1449,21 +1550,77 @@
             text-transform: uppercase;
             color: var(--muted);
             margin-bottom: 10px;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
           "
         >
           Your Full Programme Preview
         </div>
-        <div class="preview-table" id="onboard-preview">
-          <!-- injected by JS -->
+        <div class="preview-table" id="onboard-preview"></div>
+        <div
+          style="
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+          "
+        >
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px; font-size: 12px"
+            onclick="exportData()"
+          >
+            💾 Export Backup
+          </button>
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px; font-size: 12px"
+            onclick="importData()"
+          >
+            📂 Import Backup
+          </button>
         </div>
-
+        <div style="margin-top: 12px">
+          <button
+            onclick="forceReset()"
+            style="
+              width: 100%;
+              padding: 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              background: rgba(255, 77, 46, 0.06);
+              border: 1px solid rgba(255, 77, 46, 0.2);
+              color: var(--muted);
+              font-family: &quot;Outfit&quot;, sans-serif;
+              font-size: 12px;
+              letter-spacing: 1px;
+              text-transform: uppercase;
+              font-weight: 600;
+              transition: all 0.2s;
+            "
+            onmouseover="
+              this.style.background = 'rgba(255,77,46,0.15)';
+              this.style.color = 'var(--push)';
+            "
+            onmouseout="
+              this.style.background = 'rgba(255,77,46,0.06)';
+              this.style.color = 'var(--muted)';
+            "
+          >
+            ⚠️ Factory Reset — Wipe All Data
+          </button>
+        </div>
         <button class="save-btn" onclick="saveSettings()">
           Initialize Programme
         </button>
       </div>
     </div>
 
-    <!-- FINISH MODAL -->
+    <!-- ============================================================ -->
+    <!-- FINISH / LOCK SESSION MODAL                                   -->
+    <!-- ============================================================ -->
     <div class="modal-overlay" id="finish-modal">
       <div class="modal-box">
         <div class="modal-header">End Session?</div>
@@ -1496,6 +1653,158 @@
       </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- PR MODAL                                                      -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="pr-modal">
+      <div class="modal-box">
+        <button
+          class="close-modal-btn"
+          onclick="document.getElementById('pr-modal').classList.remove('show')"
+        >
+          &times;
+        </button>
+        <div class="modal-header">Personal Records</div>
+        <div class="modal-sub">
+          Best single-set rep count per exercise variation. Updates live as you
+          train.
+        </div>
+        <div id="pr-list"></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- FACTORY RESET CONFIRMATION MODAL                             -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="reset-modal">
+      <div class="modal-box" style="max-width: 440px">
+        <div id="reset-step-1">
+          <div style="font-size: 40px; margin-bottom: 16px; text-align: center">
+            ⚠️
+          </div>
+          <div class="modal-header" style="text-align: center">
+            Factory Reset
+          </div>
+          <div class="modal-sub" style="text-align: center">
+            This will permanently delete
+            <strong>everything</strong>:<br /><br />
+            All session history · All personal records<br />
+            All progression levels · All rep logs<br /><br />
+            <strong style="color: var(--push)">This is non-reversible.</strong>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 8px">
+            <button
+              class="g-btn"
+              style="flex: 1; padding: 12px; font-size: 13px"
+              onclick="closeResetModal()"
+            >
+              Cancel
+            </button>
+            <button
+              class="save-btn"
+              style="
+                flex: 1;
+                margin: 0;
+                background: rgba(255, 77, 46, 0.15);
+                color: var(--push);
+                border: 1px solid rgba(255, 77, 46, 0.3);
+              "
+              onclick="resetStep2()"
+            >
+              I understand, continue
+            </button>
+          </div>
+        </div>
+
+        <div id="reset-step-2" style="display: none">
+          <div style="font-size: 40px; margin-bottom: 16px; text-align: center">
+            💾
+          </div>
+          <div class="modal-header" style="text-align: center">
+            Save a Backup First?
+          </div>
+          <div class="modal-sub" style="text-align: center">
+            We strongly recommend downloading your data before wiping.<br /><br />
+            You can restore it later using <strong>Import Backup</strong>.
+          </div>
+          <button
+            class="g-btn"
+            style="
+              width: 100%;
+              padding: 12px;
+              font-size: 13px;
+              margin-bottom: 10px;
+              border-color: var(--gold);
+              color: var(--gold);
+            "
+            onclick="exportData()"
+          >
+            💾 Download Backup
+          </button>
+          <div style="display: flex; gap: 10px; margin-top: 4px">
+            <button
+              class="g-btn"
+              style="flex: 1; padding: 12px; font-size: 13px"
+              onclick="closeResetModal()"
+            >
+              Cancel
+            </button>
+            <button
+              class="save-btn"
+              style="
+                flex: 1;
+                margin: 0;
+                background: rgba(255, 77, 46, 0.15);
+                color: var(--push);
+                border: 1px solid rgba(255, 77, 46, 0.3);
+              "
+              onclick="resetStep3()"
+            >
+              Skip, continue anyway
+            </button>
+          </div>
+        </div>
+
+        <div id="reset-step-3" style="display: none">
+          <div style="font-size: 40px; margin-bottom: 16px; text-align: center">
+            🔴
+          </div>
+          <div class="modal-header" style="text-align: center">
+            Final Warning
+          </div>
+          <div class="modal-sub" style="text-align: center">
+            There is
+            <strong style="color: var(--push)">no undo</strong>.<br /><br />
+            All your progress will be gone permanently.<br /><br />
+            Are you absolutely certain?
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 8px">
+            <button
+              class="g-btn"
+              style="flex: 1; padding: 12px; font-size: 13px"
+              onclick="closeResetModal()"
+            >
+              Cancel
+            </button>
+            <button
+              class="save-btn"
+              style="
+                flex: 1;
+                margin: 0;
+                background: var(--push);
+                color: #000;
+                font-weight: 800;
+              "
+              onclick="executeReset()"
+            >
+              Wipe Everything
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST -->
     <div class="toast" id="toast">
       <span class="toast-icon" id="toast-icon">🔥</span>
       <div class="toast-msg" id="toast-msg"></div>
@@ -1503,7 +1812,147 @@
 
     <script>
       // ============================================================
-      // DATA
+      // PROGRESSION LISTS
+      // ============================================================
+      const PROG_VERT_PUSH = [
+        { name: "Bench Dips (feet on floor)", type: "reps" },
+        { name: "Bench Dips (feet elevated)", type: "reps" },
+        { name: "Straight Bar Dips (low height)", type: "reps" },
+        { name: "Parallel Bar Dips", type: "reps" },
+        { name: "Deep Parallel Bar Dips", type: "reps" },
+        { name: "Korean Dips", type: "reps" },
+        { name: "Ring Dips", type: "reps" },
+        { name: "Bulgarian Dips", type: "reps" },
+        { name: "Weighted Dips", type: "reps" },
+        { name: "One-Arm Assisted Dip", type: "reps" },
+      ];
+      const PROG_HORIZ_PUSH = [
+        { name: "Wall Push-ups", type: "reps" },
+        { name: "Knee Push-ups", type: "reps" },
+        { name: "Incline Push-ups", type: "reps" },
+        { name: "Standard Push-ups", type: "reps" },
+        { name: "Close-Grip Push-ups", type: "reps" },
+        { name: "Wide Push-ups", type: "reps" },
+        { name: "Decline Push-ups", type: "reps" },
+        { name: "Archer Push-ups", type: "reps" },
+        { name: "Pseudo Planche Push-ups", type: "reps" },
+        { name: "One-Arm Push-ups", type: "reps" },
+        { name: "Planche Push-ups", type: "reps" },
+      ];
+      const PROG_SHOULDER = [
+        { name: "Pike Hold (static)", type: "hold" },
+        { name: "Pike Push-ups", type: "reps" },
+        { name: "Elevated Pike Push-ups", type: "reps" },
+        { name: "Wall Handstand Hold", type: "hold" },
+        { name: "Wall Handstand Push-ups (partial ROM)", type: "reps" },
+        { name: "Full Wall Handstand Push-ups", type: "reps" },
+        { name: "Freestanding Handstand Push-ups", type: "reps" },
+        { name: "Deficit Handstand Push-ups", type: "reps" },
+      ];
+      const PROG_VERT_PULL = [
+        { name: "Active Dead Hang", type: "hold" },
+        { name: "Scapular Pull-ups", type: "reps" },
+        { name: "Jumping Pull-ups", type: "reps" },
+        { name: "Negative Pull-ups", type: "reps" },
+        { name: "Chin-ups (underhand)", type: "reps" },
+        { name: "Neutral Grip Pull-ups", type: "reps" },
+        { name: "Overhand Pull-ups", type: "reps" },
+        { name: "Chest-to-Bar Pull-ups", type: "reps" },
+        { name: "Archer Pull-ups", type: "reps" },
+        { name: "Typewriter Pull-ups", type: "reps" },
+        { name: "One-Arm Assisted Pull-ups", type: "reps" },
+        { name: "One-Arm Pull-ups", type: "reps" },
+      ];
+      const PROG_HORIZ_PULL = [
+        { name: "High Bar Inverted Rows", type: "reps" },
+        { name: "Standard Inverted Rows", type: "reps" },
+        { name: "Feet Elevated Rows", type: "reps" },
+        { name: "Archer Rows", type: "reps" },
+        { name: "Wide Grip Rows", type: "reps" },
+        { name: "Tuck Front Lever Rows", type: "reps" },
+        { name: "Advanced Tuck Front Lever Rows", type: "reps" },
+        { name: "Full Front Lever Rows", type: "reps" },
+      ];
+      const PROG_SQUAT = [
+        { name: "Assisted Squats", type: "reps" },
+        { name: "Bodyweight Squats", type: "reps" },
+        { name: "Tempo Squats", type: "reps" },
+        { name: "Pause Squats", type: "reps" },
+        { name: "Jump Squats", type: "reps" },
+        { name: "Shrimp Squats", type: "reps" },
+        { name: "Pistol Squats", type: "reps" },
+      ];
+      const PROG_SINGLE_LEG = [
+        { name: "Split Squats", type: "reps" },
+        { name: "Bulgarian Split Squats", type: "reps" },
+        { name: "Assisted Pistol Squats", type: "reps" },
+        { name: "Full Pistol Squats", type: "reps" },
+        { name: "Elevated Pistol Squats", type: "reps" },
+        { name: "Weighted Pistol Squats", type: "reps" },
+      ];
+      const PROG_GLUTE = [
+        { name: "Glute Bridge", type: "hold" },
+        { name: "Single-Leg Glute Bridge", type: "hold" },
+        { name: "Hip Thrust", type: "reps" },
+        { name: "Feet Elevated Hip Thrust", type: "reps" },
+        { name: "Bulgarian Split Squat (glute bias)", type: "reps" },
+        { name: "Nordic Curl", type: "reps" },
+        { name: "Single-Leg Nordic", type: "reps" },
+      ];
+      const PROG_CALF = [
+        { name: "Double-Leg Calf Raises", type: "reps" },
+        { name: "Slow Tempo Calf Raises", type: "reps" },
+        { name: "Single-Leg Calf Raises", type: "reps" },
+        { name: "Elevated Surface Calf Raises", type: "reps" },
+        { name: "Explosive Calf Raises", type: "reps" },
+        { name: "Single-Leg Explosive Calf Raises", type: "reps" },
+      ];
+      const PROG_CORE_PUSH = [
+        { name: "Plank", type: "hold" },
+        { name: "Shoulder Taps", type: "reps" },
+        { name: "Hollow Hold", type: "hold" },
+        { name: "L-Sit Tuck", type: "hold" },
+        { name: "Full L-Sit", type: "hold" },
+        { name: "V-Ups", type: "reps" },
+        { name: "Dragon Flags", type: "reps" },
+      ];
+      const PROG_CORE_PULL = [
+        { name: "Hanging Knee Raises", type: "reps" },
+        { name: "Hanging Leg Raises", type: "reps" },
+        { name: "Toes-to-Bar", type: "reps" },
+        { name: "L-Sit Pull-ups", type: "reps" },
+        { name: "Tuck Front Lever", type: "hold" },
+        { name: "Dragon Flags", type: "reps" },
+      ];
+      const PROG_CORE_LEGS = [
+        { name: "Plank", type: "hold" },
+        { name: "Side Plank", type: "hold" },
+        { name: "Hollow Hold", type: "hold" },
+        { name: "V-Ups", type: "reps" },
+        { name: "Hanging Leg Raises", type: "reps" },
+        { name: "Dragon Flags", type: "reps" },
+      ];
+
+      // ============================================================
+      // SLOT LABELS
+      // ============================================================
+      const SLOT_LABELS = {
+        push_vert: { label: "Vertical Push", focus: "Dip Family" },
+        push_horiz: { label: "Horizontal Push", focus: "Push-up Family" },
+        push_shoulder: { label: "Overhead Press", focus: "Shoulder Family" },
+        push_core: { label: "Core", focus: "Push Emphasis" },
+        pull_vert: { label: "Vertical Pull", focus: "Pull-up Family" },
+        pull_horiz: { label: "Horizontal Pull", focus: "Row Family" },
+        pull_core: { label: "Core", focus: "Pull Emphasis" },
+        legs_squat: { label: "Squat", focus: "Bilateral Quad" },
+        legs_single: { label: "Single-Leg", focus: "Unilateral" },
+        legs_glute: { label: "Glute", focus: "Posterior Chain" },
+        legs_calf: { label: "Calf", focus: "Calf Endurance" },
+        legs_core: { label: "Core", focus: "Leg Day" },
+      };
+
+      // ============================================================
+      // EXERCISES
       // ============================================================
       const DAYS = [
         "Sunday",
@@ -1534,273 +1983,119 @@
         0: { label: "Rest", type: "rest" },
       };
 
-      const PROG_PUSH = [
-        {
-          name: "Wall Push-ups",
-          desc: "Lowest load — great for building continuous tension form",
-        },
-        {
-          name: "Incline Push-ups",
-          desc: "Hands on counter or elevated surface, lighter load",
-        },
-        { name: "Knee Push-ups", desc: "Reduced lever, pure pump focus" },
-        { name: "Regular Push-ups", desc: "Standard full ROM, the foundation" },
-        { name: "Wide Push-ups", desc: "Broader grip, more chest recruitment" },
-        {
-          name: "Diamond / Triangle",
-          desc: "Extreme triceps focus, close grip",
-        },
-        {
-          name: "Archer Push-ups",
-          desc: "One arm heavily loaded — precursor to one-arm",
-        },
-        {
-          name: "Pike Push-ups",
-          desc: "Overhead pressing angle, shoulder focus",
-        },
-        {
-          name: "Elevated Pike / Decline",
-          desc: "Feet on chair, increased vertical load",
-        },
-        { name: "Handstand Wall Hold", desc: "Full bodyweight overhead press" },
-        {
-          name: "Free Handstand Push-ups",
-          desc: "Elite: balance + full overhead strength",
-        },
-      ];
-
-      const PROG_PULL = [
-        {
-          name: "Doorframe Rows",
-          desc: "Standing, pulling against doorframe — beginner friendly",
-        },
-        {
-          name: "Inverted Rows (Knees Bent)",
-          desc: "Bar low, feet flat on floor, easy angle",
-        },
-        {
-          name: "Inverted Rows (Straight Leg)",
-          desc: "Body straight, pulling chest to bar",
-        },
-        {
-          name: "Feet-Elevated Rows",
-          desc: "Feet on chair, more gravitational load",
-        },
-        { name: "Jackknife Pull-ups", desc: "Feet on box in front (assisted)" },
-        {
-          name: "Negative Pull-ups",
-          desc: "Jump up, lower slowly 3–5 seconds",
-        },
-        { name: "Chin-ups", desc: "Underhand grip, bicep dominant" },
-        { name: "Pull-ups", desc: "Overhand grip, strict form" },
-        { name: "Mixed Grip Pull-ups", desc: "One hand over, one under" },
-        { name: "Commando Pull-ups", desc: "Sideways on bar, alternate sides" },
-      ];
-
-      const PROG_LEGS = [
-        {
-          name: "Wall Sit",
-          desc: "Isometric quad hold — great starting point",
-        },
-        { name: "Step-ups (low)", desc: "Introductory unilateral load" },
-        {
-          name: "Glute Bridge (floor)",
-          desc: "Basic glute activation and hip extension",
-        },
-        { name: "Bodyweight Squats", desc: "Full depth foundational squat" },
-        {
-          name: "Bulgarian Split Squat (low)",
-          desc: "Unilateral focus, mild stretch",
-        },
-        {
-          name: "Bulgarian Split Squat (elevated)",
-          desc: "Deep stretch, heavy unilateral load",
-        },
-        {
-          name: "Assisted Pistol Squat",
-          desc: "Holding doorframe or TRX for balance",
-        },
-        { name: "Jump Squats", desc: "High power output, explosive" },
-        {
-          name: "Full Pistol Squat",
-          desc: "Elite: full mobility and single-leg strength",
-        },
-        {
-          name: "Nordic Hamstring Curl",
-          desc: "Extreme hamstring eccentric load",
-        },
-      ];
-
-      const PROG_CORE = [
-        {
-          name: "Dead Bug",
-          desc: "Anti-extension core control — beginner safe",
-        },
-        { name: "Crunches", desc: "Classic core flexion" },
-        { name: "Knee Raises", desc: "Lower ab engagement, lying or hanging" },
-        { name: "Plank", desc: "Standard anti-extension isometric" },
-        { name: "Hollow Hold", desc: "Gymnastics core strength foundation" },
-        { name: "Side Plank", desc: "Anti-lateral flexion" },
-        {
-          name: "Hanging Leg Raises",
-          desc: "Requires hip flexor strength + mobility",
-        },
-        { name: "L-Sit Hold", desc: "Brutal isometric compression" },
-        { name: "Toes-to-Bar", desc: "Dynamic, explosive core flexion" },
-      ];
-
-      // EXERCISE SLOT LABELS (human-readable names for each slot)
-      const SLOT_LABELS = {
-        push_main: { label: "Push — Main", focus: "Chest & Triceps" },
-        push_upper: { label: "Push — Upper", focus: "Upper Chest" },
-        push_shoulders: { label: "Push — Shoulders", focus: "Delts & Press" },
-        push_triceps: { label: "Push — Triceps", focus: "Tricep Isolation" },
-        pull_horiz: { label: "Pull — Horizontal", focus: "Mid Back & Rows" },
-        pull_vert: { label: "Pull — Vertical", focus: "Lats & Biceps" },
-        pull_scap: { label: "Pull — Scapular", focus: "Shoulder Stability" },
-        pull_core: { label: "Pull — Core", focus: "Abs & Core" },
-        legs_quads: { label: "Legs — Quads", focus: "Quad Dominant" },
-        legs_uni: { label: "Legs — Unilateral", focus: "Single Leg Strength" },
-        legs_glutes: { label: "Legs — Glutes", focus: "Posterior Chain" },
-        legs_calves: { label: "Legs — Calves", focus: "Calf Endurance" },
-        legs_core: { label: "Legs — Core", focus: "Core Isometric" },
-      };
-
       const EXERCISES = {
         push: [
           {
-            id: "push_main",
-            category: "push",
-            note: "Continuous tension — no locking out elbows at top.",
+            id: "push_vert",
+            label: "Vertical Push",
+            focus: "Dip Family",
+            note: "Keep elbows close. Control the descent.",
             sets: 3,
-            repRange: "20–30",
-            maxRep: 25,
             color: "push",
-            progressions: PROG_PUSH,
+            progressions: PROG_VERT_PUSH,
           },
           {
-            id: "push_upper",
-            category: "push",
-            note: "Upper chest focus. Short, rapid pumps.",
+            id: "push_horiz",
+            label: "Horizontal Push",
+            focus: "Push-up Family",
+            note: "Continuous tension — no locking elbows.",
             sets: 3,
-            repRange: "20–25",
-            maxRep: 25,
             color: "push",
-            progressions: PROG_PUSH,
+            progressions: PROG_HORIZ_PUSH,
           },
           {
-            id: "push_shoulders",
-            category: "push",
+            id: "push_shoulder",
+            label: "Overhead Press",
+            focus: "Shoulder Family",
             note: "Vertical path. Constant motion, no resting.",
             sets: 3,
-            repRange: "15–20",
-            maxRep: 20,
             color: "push",
-            progressions: PROG_PUSH,
+            progressions: PROG_SHOULDER,
           },
           {
-            id: "push_triceps",
-            category: "push",
-            note: "Isolate triceps. Burnout finisher set.",
+            id: "push_core",
+            label: "Core",
+            focus: "Push Emphasis",
+            note: "Quality over speed. Control every rep.",
             sets: 2,
-            repRange: "20–30",
-            maxRep: 30,
             color: "push",
-            progressions: PROG_PUSH,
+            progressions: PROG_CORE_PUSH,
           },
         ],
         pull: [
           {
-            id: "pull_horiz",
-            category: "pull",
-            note: "Squeeze the back hard at the top. Rapid tempo.",
-            sets: 3,
-            repRange: "15–20",
-            maxRep: 20,
-            color: "pull",
-            progressions: PROG_PULL,
-          },
-          {
             id: "pull_vert",
-            category: "pull",
-            note: "Vertical pull. Use negatives or assistance if needed.",
+            label: "Vertical Pull",
+            focus: "Pull-up Family",
+            note: "Full dead hang at bottom. Chin clears the bar.",
             sets: 3,
-            repRange: "8–12",
-            maxRep: 12,
             color: "pull",
-            progressions: PROG_PULL,
+            progressions: PROG_VERT_PULL,
           },
           {
-            id: "pull_scap",
-            category: "pull",
-            note: "Dead hang for time (seconds) or scapular shrugs.",
-            sets: 2,
-            repRange: "30–60s",
-            maxRep: 60,
+            id: "pull_horiz",
+            label: "Horizontal Pull",
+            focus: "Row Family",
+            note: "Squeeze shoulder blades. Rapid tempo.",
+            sets: 3,
             color: "pull",
-            progressions: PROG_PULL,
+            progressions: PROG_HORIZ_PULL,
           },
           {
             id: "pull_core",
-            category: "pull",
-            note: "Core endurance. Maintain continuous tension.",
-            sets: 3,
-            repRange: "20–25",
-            maxRep: 25,
+            label: "Core",
+            focus: "Pull Emphasis",
+            note: "Control the descent. No swinging.",
+            sets: 2,
             color: "pull",
-            progressions: PROG_CORE,
+            progressions: PROG_CORE_PULL,
           },
         ],
         legs: [
           {
-            id: "legs_quads",
-            category: "legs",
-            note: "High reps. Do not lock knees at top.",
+            id: "legs_squat",
+            label: "Squat",
+            focus: "Bilateral Quad",
+            note: "Full depth. Do not lock knees at top.",
             sets: 3,
-            repRange: "30–50",
-            maxRep: 40,
             color: "legs",
-            progressions: PROG_LEGS,
+            progressions: PROG_SQUAT,
           },
           {
-            id: "legs_uni",
-            category: "legs",
-            note: "Unilateral balance + pump. Control the descent.",
+            id: "legs_single",
+            label: "Single-Leg Squat",
+            focus: "Unilateral",
+            note: "Balance + control. Each leg counted separately.",
             sets: 3,
-            repRange: "15–20/leg",
-            maxRep: 20,
             color: "legs",
-            progressions: PROG_LEGS,
+            progressions: PROG_SINGLE_LEG,
           },
           {
-            id: "legs_glutes",
-            category: "legs",
-            note: "Glute isolation. Squeeze hard at top, 1s hold.",
+            id: "legs_glute",
+            label: "Glute",
+            focus: "Posterior Chain",
+            note: "Squeeze hard at top. 1 second hold each rep.",
             sets: 3,
-            repRange: "25–30",
-            maxRep: 30,
             color: "legs",
-            progressions: PROG_LEGS,
+            progressions: PROG_GLUTE,
           },
           {
-            id: "legs_calves",
-            category: "legs",
-            note: "Aim for the burn. Slow negatives. Short rest.",
+            id: "legs_calf",
+            label: "Calf",
+            focus: "Calf Endurance",
+            note: "Slow negatives. Full stretch at the bottom.",
             sets: 2,
-            repRange: "50–75",
-            maxRep: 60,
             color: "legs",
-            progressions: PROG_LEGS,
+            progressions: PROG_CALF,
           },
           {
             id: "legs_core",
-            category: "legs",
-            note: "Isometric hold in seconds. Build duration over time.",
+            label: "Core",
+            focus: "Leg Day",
+            note: "Controlled reps only. No momentum.",
             sets: 2,
-            repRange: "60s",
-            maxRep: 60,
             color: "legs",
-            progressions: PROG_CORE,
+            progressions: PROG_CORE_LEGS,
           },
         ],
       };
@@ -1817,6 +2112,7 @@
         variations: {},
         history: {},
         completed: {},
+        personalRecords: {},
       };
 
       function getLocalTime() {
@@ -1869,52 +2165,57 @@
       }
 
       // ============================================================
-      // ONBOARDING PREVIEW (FIX #3, #5)
+      // ONBOARDING
       // ============================================================
+      const ONBOARD_MAP = {
+        "ob-push-vert": { prog: () => PROG_VERT_PUSH, exId: "push_vert" },
+        "ob-push-horiz": { prog: () => PROG_HORIZ_PUSH, exId: "push_horiz" },
+        "ob-push-shoulder": {
+          prog: () => PROG_SHOULDER,
+          exId: "push_shoulder",
+        },
+        "ob-push-core": { prog: () => PROG_CORE_PUSH, exId: "push_core" },
+        "ob-pull-vert": { prog: () => PROG_VERT_PULL, exId: "pull_vert" },
+        "ob-pull-horiz": { prog: () => PROG_HORIZ_PULL, exId: "pull_horiz" },
+        "ob-pull-core": { prog: () => PROG_CORE_PULL, exId: "pull_core" },
+        "ob-legs-squat": { prog: () => PROG_SQUAT, exId: "legs_squat" },
+        "ob-legs-single": { prog: () => PROG_SINGLE_LEG, exId: "legs_single" },
+        "ob-legs-glute": { prog: () => PROG_GLUTE, exId: "legs_glute" },
+        "ob-legs-calf": { prog: () => PROG_CALF, exId: "legs_calf" },
+        "ob-legs-core": { prog: () => PROG_CORE_LEGS, exId: "legs_core" },
+      };
 
-      // Returns what variation names will be assigned given current select values
-      function computeVariationAssignments(pushIdx, pullIdx, legsIdx) {
-        const assignments = {};
+      function populateOnboardingSelects() {
+        Object.entries(ONBOARD_MAP).forEach(([selectId, cfg]) => {
+          const sel = document.getElementById(selectId);
+          if (!sel) return;
+          const prog = cfg.prog();
+          sel.innerHTML = prog
+            .map((p, i) => `<option value="${i}">${p.name}</option>`)
+            .join("");
+          // Pre-select saved variation if exists
+          const saved = appState.variations[cfg.exId];
+          if (saved) {
+            const idx = prog.findIndex((p) => p.name === saved);
+            if (idx > -1) sel.value = idx;
+          }
+        });
+      }
 
-        // PUSH
-        assignments["push_main"] = PROG_PUSH[pushIdx].name;
-        assignments["push_upper"] =
-          pushIdx < 3 ? PROG_PUSH[0].name : PROG_PUSH[1].name;
-        assignments["push_shoulders"] =
-          pushIdx < 3 ? PROG_PUSH[7].name : PROG_PUSH[8].name;
-        assignments["push_triceps"] = PROG_PUSH[5].name;
-
-        // PULL
-        assignments["pull_horiz"] = PROG_PULL[pullIdx].name;
-        assignments["pull_vert"] =
-          pullIdx < 2 ? PROG_PULL[4].name : PROG_PULL[7].name;
-        assignments["pull_scap"] =
-          pullIdx < 2 ? PROG_PULL[0].name : PROG_PULL[2].name;
-        assignments["pull_core"] =
-          pullIdx < 2 ? PROG_CORE[2].name : PROG_CORE[6].name;
-
-        // LEGS
-        assignments["legs_quads"] = PROG_LEGS[legsIdx].name;
-        assignments["legs_uni"] =
-          legsIdx < 3 ? PROG_LEGS[1].name : PROG_LEGS[5].name;
-        assignments["legs_glutes"] = PROG_LEGS[2].name;
-        assignments["legs_calves"] = PROG_LEGS[3].name;
-        assignments["legs_core"] = PROG_CORE[3].name;
-
-        return assignments;
+      function computeVariationAssignments() {
+        const result = {};
+        Object.entries(ONBOARD_MAP).forEach(([selectId, cfg]) => {
+          const sel = document.getElementById(selectId);
+          if (!sel) return;
+          const prog = cfg.prog();
+          result[cfg.exId] = prog[parseInt(sel.value)].name;
+        });
+        return result;
       }
 
       function updateOnboardingPreview() {
-        const pushIdx = parseInt(document.getElementById("setup-push").value);
-        const pullIdx = parseInt(document.getElementById("setup-pull").value);
-        const legsIdx = parseInt(document.getElementById("setup-legs").value);
-
-        const assignments = computeVariationAssignments(
-          pushIdx,
-          pullIdx,
-          legsIdx,
-        );
         const preview = document.getElementById("onboard-preview");
+        if (!preview) return;
 
         const allSlots = [
           ...EXERCISES.push.map((e) => e.id),
@@ -1929,6 +2230,15 @@
               ? "pull"
               : "legs";
 
+        // Read current select values to show preview
+        const current = {};
+        Object.entries(ONBOARD_MAP).forEach(([selectId, cfg]) => {
+          const sel = document.getElementById(selectId);
+          if (!sel) return;
+          const prog = cfg.prog();
+          current[cfg.exId] = prog[parseInt(sel.value)]?.name || "—";
+        });
+
         preview.innerHTML = `
     <div class="preview-table-header">
       <span>Slot</span>
@@ -1942,7 +2252,7 @@
           <div class="preview-slot">${SLOT_LABELS[id].label}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">${SLOT_LABELS[id].focus}</div>
         </div>
-        <div class="preview-val ${colorOf(id)}">${assignments[id]}</div>
+        <div class="preview-val ${colorOf(id)}">${current[id] || "—"}</div>
       </div>
     `,
       )
@@ -1961,7 +2271,8 @@
           ? "none"
           : "block";
         document.getElementById("settings-modal").classList.add("show");
-        updateOnboardingPreview(); // Show preview immediately on open
+        populateOnboardingSelects();
+        updateOnboardingPreview();
       }
 
       function closeSettings() {
@@ -1972,22 +2283,14 @@
       function saveSettings() {
         const nameVal =
           document.getElementById("setup-name").value.trim() || "Ali";
-        const pushIdx = parseInt(document.getElementById("setup-push").value);
-        const pullIdx = parseInt(document.getElementById("setup-pull").value);
-        const legsIdx = parseInt(document.getElementById("setup-legs").value);
         const splitVal = document.getElementById("setup-split").value;
 
         appState.name = nameVal;
         appState.split = splitVal;
 
-        const assignments = computeVariationAssignments(
-          pushIdx,
-          pullIdx,
-          legsIdx,
-        );
+        const assignments = computeVariationAssignments();
         Object.assign(appState.variations, assignments);
 
-        // Reset reps since programme changed
         Object.values(EXERCISES)
           .flat()
           .forEach((ex) => {
@@ -2002,6 +2305,56 @@
           "✅",
           `<strong>Programme Calibrated</strong><br>All exercises assigned. Let's go.`,
         );
+      }
+
+      function forceReset() {
+        // Close settings modal first, open reset flow
+        document.getElementById("settings-modal").classList.remove("show");
+        resetStep1();
+      }
+
+      function resetStep1() {
+        document.getElementById("reset-step-1").style.display = "block";
+        document.getElementById("reset-step-2").style.display = "none";
+        document.getElementById("reset-step-3").style.display = "none";
+        document.getElementById("reset-modal").classList.add("show");
+      }
+
+      function resetStep2() {
+        document.getElementById("reset-step-1").style.display = "none";
+        document.getElementById("reset-step-2").style.display = "block";
+      }
+
+      function resetStep3() {
+        document.getElementById("reset-step-2").style.display = "none";
+        document.getElementById("reset-step-3").style.display = "block";
+      }
+
+      function closeResetModal() {
+        document.getElementById("reset-modal").classList.remove("show");
+        // Reopen settings so user isn't left on a blank screen
+        setTimeout(() => openSettings(false), 200);
+      }
+
+      function executeReset() {
+        localStorage.removeItem("hq_workout_state");
+        appState = {
+          onboarded: false,
+          name: "Ali",
+          split: "default",
+          date: "",
+          reps: {},
+          variations: {},
+          history: {},
+          completed: {},
+          personalRecords: {},
+        };
+        document.getElementById("reset-modal").classList.remove("show");
+        showToast(
+          "🔄",
+          "<strong>All data wiped.</strong><br>Starting fresh — complete setup to continue.",
+        );
+        setTimeout(() => openSettings(true), 800);
       }
 
       function resetToday() {
@@ -2041,10 +2394,12 @@
         if (type !== "rest") {
           EXERCISES[type].forEach((ex) => {
             const vals = appState.reps[ex.id] || [];
-            const total = vals.reduce((a, b) => a + (parseInt(b) || 0), 0);
-            const target = ex.maxRep * ex.sets;
+            // Trigger: any single set >= 50 reps
+            const varType = getVarType(ex.id);
+            const threshold = varType === "hold" ? 60 : 50;
+            const anySetHit50 = vals.some((v) => parseInt(v) >= threshold);
 
-            if (total >= target) {
+            if (anySetHit50) {
               const currentName =
                 appState.variations[ex.id] || ex.progressions[0].name;
               const currentIdx = ex.progressions.findIndex(
@@ -2074,7 +2429,7 @@
         const sub = document.getElementById("finish-modal-sub");
         if (pendingUpgrades.length > 0) {
           sub.innerHTML = `
-      <strong>💪 You hit the targets on ${pendingUpgrades.length} exercise${pendingUpgrades.length > 1 ? "s" : ""}!</strong><br>
+      <strong>💪 You maxed out ${pendingUpgrades.length} exercise${pendingUpgrades.length > 1 ? "s" : ""}!</strong><br>
       Check the ones you want to level up <em>next session</em>. Uncheck to stay where you are.
       <div class="upgrade-list">${upgradeHTML}</div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px">Changes apply from your next session, not today.</div>`;
@@ -2101,6 +2456,29 @@
 
         const todayStr = getLocalDateStr();
         appState.completed[todayStr] = true;
+        // Log PRs on confirm — safe because session is now final
+        const today2 = getLocalTime().getDay();
+        const type2 = getSchedule()[today2].type;
+        if (type2 !== "rest") {
+          EXERCISES[type2].forEach((ex) => {
+            const varName =
+              appState.variations[ex.id] || ex.progressions[0].name;
+            if (!appState.personalRecords) appState.personalRecords = {};
+            (appState.reps[ex.id] || []).forEach((v) => {
+              const val = parseInt(v);
+              if (!isNaN(val) && val > 0) {
+                const varType = getVarType(ex.id);
+                const prev = appState.personalRecords[varName]?.value || 0;
+                if (val > prev) {
+                  appState.personalRecords[varName] = {
+                    value: val,
+                    unit: varType === "hold" ? "s" : "reps",
+                  };
+                }
+              }
+            });
+          });
+        }
         saveState();
         closeFinishModal();
         initUI();
@@ -2109,7 +2487,64 @@
         if (upgradeCount > 0)
           msg += `<br>🚀 ${upgradeCount} exercise${upgradeCount > 1 ? "s" : ""} levelled up for next session!`;
         showToast("🏆", msg);
+        // Announce any new PRs set this session
+        const prMessages = [];
+        if (type2 !== "rest") {
+          EXERCISES[type2].forEach((ex) => {
+            const varName =
+              appState.variations[ex.id] || ex.progressions[0].name;
+            const bestVal = best?.value ?? best;
+            const bestUnit = best?.unit ?? "reps";
+            const prevBest = Math.max(
+              ...(appState.reps[ex.id] || []).map((v) => parseInt(v) || 0),
+            );
+            if (prevBest === bestVal)
+              prMessages.push(`${varName}: ${bestVal}${bestUnit}`);
+          });
+        }
+        if (prMessages.length > 0) {
+          setTimeout(() => {
+            showToast(
+              "🏅",
+              `<strong>New PRs this session!</strong><br>${prMessages.join("<br>")}`,
+            );
+          }, 2000);
+        }
         window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // ============================================================
+      // PR TRACKER
+      // ============================================================
+      function openPRModal() {
+        const prs = appState.personalRecords || {};
+        const keys = Object.keys(prs);
+        const list = document.getElementById("pr-list");
+
+        if (keys.length === 0) {
+          list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.6;">
+      <div style="font-size:32px;margin-bottom:12px;opacity:0.3">🏅</div>
+      <strong style="color:var(--dim);display:block;margin-bottom:6px">No records yet</strong>
+      Start logging reps to track your personal bests here.
+    </div>`;
+        } else {
+          const val = (k) => prs[k]?.value ?? prs[k];
+          const sorted = keys.sort((a, b) => val(b) - val(a));
+          list.innerHTML = sorted
+            .map(
+              (k) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  padding:14px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:14px;color:var(--text);line-height:1.3">${k}</span>
+        <span style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;
+                     color:var(--gold);white-space:nowrap;margin-left:12px">
+          ${prs[k]?.value ?? prs[k]} <span style="font-size:11px;color:var(--muted);font-family:'Outfit',sans-serif">${prs[k]?.unit ?? "reps"}</span>
+        </span>
+      </div>`,
+            )
+            .join("");
+        }
+        document.getElementById("pr-modal").classList.add("show");
       }
 
       // ============================================================
@@ -2142,33 +2577,6 @@
         "Consistency over intensity. See you next session.",
       ];
 
-      const activeTimers = {};
-      function startRestTimer(exId) {
-        if (activeTimers[exId]) {
-          clearInterval(activeTimers[exId]);
-        }
-        let secs = 90;
-        const el = document.getElementById(`timer-${exId}`);
-        el.style.color = "var(--gold)";
-        el.textContent = "1:30";
-        activeTimers[exId] = setInterval(() => {
-          secs--;
-          const m = Math.floor(secs / 60);
-          const s = String(secs % 60).padStart(2, "0");
-          el.textContent = `${m}:${s}`;
-          if (secs <= 10) el.style.color = "var(--push)";
-          if (secs <= 0) {
-            clearInterval(activeTimers[exId]);
-            el.textContent = "Go!";
-            el.style.color = "var(--legs)";
-            showToast(
-              "⏱",
-              `<strong>Rest over!</strong><br>Next set — let's go.`,
-            );
-          }
-        }, 1000);
-      }
-
       function getTimeGreeting(h) {
         if (h < 5) return "Working late —";
         if (h < 12) return "Good morning —";
@@ -2187,19 +2595,6 @@
 
         document.getElementById("today-day").textContent = DAYS[day];
         document.getElementById("hero-user-name").textContent = appState.name;
-        // Calculate streak
-        let streak = 0;
-        const todayD = getLocalTime();
-        for (let i = 0; i < 60; i++) {
-          const d = new Date(todayD.getTime() - i * 86400000);
-          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          const sched = getSchedule()[d.getDay()];
-          if (sched.type === "rest") continue; // rest days don't break streak
-          if (appState.completed[key]) streak++;
-          else if (i > 0) break; // gap found, stop counting
-        }
-        document.getElementById("streak-display").textContent =
-          streak > 0 ? `🔥 ${streak}` : "—";
         document.getElementById("split-display").textContent =
           appState.split === "6day" ? "P·P·L·P·P·L·R" : "P·R·P·L·R·R";
 
@@ -2254,15 +2649,18 @@
         });
       }
 
-      // ============================================================
-      // EXERCISE LIST (FIX #3 — descriptive names)
-      // ============================================================
-      function barColor(pct) {
-        if (pct >= 100) return "var(--legs)";
-        if (pct >= 70) return "var(--gold)";
-        return "var(--pull)";
+      function getVarType(exId) {
+        const ex = Object.values(EXERCISES)
+          .flat()
+          .find((e) => e.id === exId);
+        const varName = appState.variations[exId] || ex.progressions[0].name;
+        const entry = ex.progressions.find((p) => p.name === varName);
+        return entry?.type || "reps";
       }
 
+      // ============================================================
+      // EXERCISE LIST
+      // ============================================================
       function buildExerciseList(day) {
         const list = document.getElementById(`list-${day}`);
         list.innerHTML = "";
@@ -2282,13 +2680,12 @@
             appState.variations[ex.id] || ex.progressions[0].name;
           const slotInfo = SLOT_LABELS[ex.id];
 
-          // Check if this exercise hit target (for readiness hint on complete days)
+          // Hit target = any single set >= 50 reps
           const vals = appState.reps[ex.id] || [];
-          const total = vals.reduce((a, b) => a + (parseInt(b) || 0), 0);
-          const maxTotal = ex.maxRep * ex.sets;
-          const hitTarget = total >= maxTotal;
+          const varType = getVarType(ex.id);
+          const threshold = varType === "hold" ? 60 : 50;
+          const hitTarget = vals.some((v) => parseInt(v) >= threshold);
 
-          // See if there's a next progression
           const currentIdx = ex.progressions.findIndex(
             (p) => p.name === currentName,
           );
@@ -2300,24 +2697,25 @@
           let setsHTML = "";
           for (let i = 0; i < ex.sets; i++) {
             const val = appState.reps[ex.id][i] || "";
-            const maxed = val !== "" && Number(val) >= ex.maxRep ? "maxed" : "";
+            const varType = getVarType(ex.id);
+            const threshold = varType === "hold" ? 60 : 50;
+            const maxed = val !== "" && Number(val) >= threshold ? "maxed" : "";
             setsHTML += `
         <div class="set-input-wrap">
           <div class="set-num">SET ${i + 1}</div>
           <input type="number" class="rep-input ${maxed}" id="inp-${ex.id}-${i}"
-            placeholder="-"
+            placeholder="${getVarType(ex.id) === "hold" ? "s" : "-"}"
             ${isDayComplete ? "disabled" : ""}
-            oninput="handleRepInput('${ex.id}',${i},${ex.maxRep},'${ex.color}')"
+            oninput="handleRepInput('${ex.id}',${i},'${ex.color}')"
             value="${val}">
         </div>`;
           }
 
-          // Readiness hint: only show on completed sessions where target was hit
           const readinessHTML =
             isDayComplete && hitTarget && nextProg
               ? `<div class="readiness-hint visible">
-           <strong>🔼 Ready to level up?</strong>
-           Next session, consider advancing to: <em>${nextProg.name}</em> — ${nextProg.desc}
+           <strong>🔼 ${getVarType(ex.id) === "hold" ? "Hit 60s hold — ready to level up?" : "Hit 50+ reps — ready to level up?"}</strong>
+           Next session, consider: <em>${nextProg.name}</em>
          </div>`
               : `<div class="readiness-hint"></div>`;
 
@@ -2335,11 +2733,11 @@
           <div class="ex-note">${ex.note}</div>
         </div>
         <div class="sets-display" style="color:${colorVar}">
-          ${ex.sets}×<span style="font-size:17px;opacity:0.7">${ex.repRange}</span>
+          ${ex.sets} sets · <span style="font-size:14px;opacity:0.7;letter-spacing:0.5px">${getVarType(ex.id) === "hold" ? "30–60s hold" : "30–50 reps"}</span>
         </div>
       </div>
       <div class="rep-tracker">
-        <span class="rt-label">Log Reps</span>
+        <span class="rt-label">${getVarType(ex.id) === "hold" ? "Log Secs" : "Log Reps"}</span>
         <div class="rep-sets">${setsHTML}</div>
         <div class="progress-bar-wrap">
           <div class="progress-bar">
@@ -2350,12 +2748,6 @@
           </div>
         </div>
       </div>
-      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
-  <button onclick="startRestTimer('${ex.id}')" style="background:var(--s2);border:1px solid var(--border);color:var(--dim);border-radius:8px;padding:8px 14px;font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">
-    ⏱ Start Rest
-  </button>
-  <span id="timer-${ex.id}" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--muted)"></span>
-</div>
       ${readinessHTML}`;
 
           list.appendChild(row);
@@ -2369,7 +2761,8 @@
         }
       }
 
-      function updateRepProgress(exId, maxRep, sets, color) {
+      function updateRepProgress(exId, sets, color) {
+        const maxRep = getVarType(exId) === "hold" ? 60 : 50;
         const vals = Array.from({ length: sets }, (_, i) => {
           const v = parseInt(
             document.getElementById(`inp-${exId}-${i}`)?.value || "0",
@@ -2392,19 +2785,11 @@
                 : `var(--${color})`;
         }
         if (label && !appState.completed[getLocalDateStr()]) {
+          const unit = getVarType(exId) === "hold" ? "s" : "reps";
           label.textContent =
             total > 0
-              ? `${total} / ${maxTotal} reps (${pct}%)${pct >= 100 ? " — Target Hit! ✓" : ""}`
-              : "Enter reps above";
-        }
-        // Check PB
-        const todayStr = getLocalDateStr();
-        let prevBest = 0;
-        Object.entries(appState.history || {}).forEach(([d, v]) => {
-          if (d !== todayStr && v > prevBest) prevBest = v;
-        });
-        if (total > 0 && total > prevBest) {
-          label.textContent += " 🏅 PB!";
+              ? `${total} / ${maxTotal} ${unit} (${pct}%)${pct >= 100 ? " — Target Hit! ✓" : ""}`
+              : `Enter ${unit} above`;
         }
 
         vals.forEach((v, i) => {
@@ -2419,14 +2804,16 @@
         return total;
       }
 
-      function handleRepInput(exId, setIdx, maxRep, color) {
+      function handleRepInput(exId, setIdx, color) {
         const ex = Object.values(EXERCISES)
           .flat()
           .find((e) => e.id === exId);
-        appState.reps[exId][setIdx] = document.getElementById(
-          `inp-${exId}-${setIdx}`,
-        ).value;
-        updateRepProgress(exId, maxRep, ex.sets, color);
+        const inp = document.getElementById(`inp-${exId}-${setIdx}`);
+        const val = parseInt(inp.value);
+
+        appState.reps[exId][setIdx] = inp.value;
+
+        updateRepProgress(exId, ex.sets, color);
         updateDailyVolume();
         saveState();
       }
@@ -2448,8 +2835,54 @@
           `Today: ${total}`;
       }
 
+      function exportData() {
+        const json = JSON.stringify(appState, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ali-hq-backup-${getLocalDateStr()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(
+          "💾",
+          `<strong>Data exported.</strong><br>Save that file somewhere safe.`,
+        );
+      }
+
+      function importData() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            try {
+              const parsed = JSON.parse(ev.target.result);
+              if (!parsed.onboarded) throw new Error("Invalid backup file");
+              appState = { ...appState, ...parsed };
+              saveState();
+              initUI();
+              showToast(
+                "✅",
+                `<strong>Data imported.</strong><br>All history and progress restored.`,
+              );
+            } catch (err) {
+              showToast(
+                "❌",
+                `<strong>Import failed.</strong><br>File doesn't look right. Use a valid backup.`,
+              );
+            }
+          };
+          reader.readAsText(file);
+        };
+        input.click();
+      }
+
       // ============================================================
-      // GRAPH (FIX #4 — empty state)
+      // GRAPH
       // ============================================================
       let graphMode = "week";
 
@@ -2533,11 +2966,9 @@
           }
         }
 
-        // Check if there's any data at all
         const hasData = chartData.some((d) => d.vol > 0);
 
         if (!hasData) {
-          // EMPTY STATE
           container.innerHTML = `
       <div class="graph-empty">
         <div class="graph-empty-icon">📊</div>
@@ -2619,7 +3050,7 @@
         ["push", "pull", "legs"].forEach((day) => {
           buildExerciseList(day);
           EXERCISES[day].forEach((ex) =>
-            updateRepProgress(ex.id, ex.maxRep, ex.sets, ex.color),
+            updateRepProgress(ex.id, ex.sets, ex.color),
           );
         });
         renderGraph();
