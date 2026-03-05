@@ -184,11 +184,15 @@
       }
       .hero-name {
         font-family: "Syne", sans-serif;
-        font-size: clamp(56px, 12vw, 110px);
+        font-size: clamp(40px, 11vw, 110px); 
         font-weight: 800;
-        line-height: 0.9;
+        line-height: 1.05; 
         letter-spacing: -2px;
         animation: fadeUp 0.8s ease both 0.15s;
+        overflow-wrap: break-word; 
+        word-break: break-word;    
+        hyphens: auto;         
+        max-width: 100%;          
       }
       .hero-name .user-name {
         background: linear-gradient(135deg, #fff 0%, #9aa0b0 100%);
