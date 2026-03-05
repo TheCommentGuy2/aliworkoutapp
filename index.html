@@ -1351,6 +1351,54 @@
           max-width: none;
         }
       }
+
+      .transfer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 10, 14, 0.92);
+        backdrop-filter: blur(8px);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .transfer-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .transfer-spinner {
+        width: 48px;
+        height: 48px;
+        border: 3px solid var(--border);
+        border-top-color: var(--gold);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .transfer-msg {
+        font-family: "Syne", sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text);
+        text-align: center;
+        letter-spacing: 0.5px;
+        transition: opacity 0.4s ease;
+      }
+      .transfer-sub {
+        font-size: 13px;
+        color: var(--muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
     </style>
   </head>
   <body>
@@ -2156,6 +2204,13 @@
       </div>
     </div>
 
+    <!-- TRANSFER OVERLAY -->
+    <div id="transfer-overlay" class="transfer-overlay">
+      <div class="transfer-spinner"></div>
+      <div class="transfer-msg" id="transfer-msg">Preparing...</div>
+      <div class="transfer-sub" id="transfer-sub">Please wait</div>
+    </div>
+
     <!-- TOAST -->
     <div class="toast" id="toast">
       <span class="toast-icon" id="toast-icon">🔥</span>
@@ -2524,8 +2579,7 @@
         else initUI();
       }
 
-      function saveState() {
-        // Migrate any legacy flat number history entries to rich format
+      function saveState(skipRender = false) {
         if (appState.history) {
           Object.keys(appState.history).forEach((dateStr) => {
             const val = appState.history[dateStr];
@@ -2539,8 +2593,10 @@
           });
         }
         localStorage.setItem("hq_workout_state", JSON.stringify(appState));
-        renderGraph();
-        renderStats();
+        if (!skipRender) {
+          renderGraph();
+          renderStats();
+        }
       }
 
       // ============================================================
@@ -3253,8 +3309,9 @@
           return isNaN(v) ? 0 : v;
         });
         const total = vals.reduce((a, b) => a + b, 0);
+        const bestSet = Math.max(...vals);
+        const pct = Math.min(100, Math.round((bestSet / maxRep) * 100));
         const maxTotal = maxRep * sets;
-        const pct = Math.min(100, Math.round((total / maxTotal) * 100));
 
         const fill = document.getElementById(`fill-${exId}`);
         const label = document.getElementById(`prog-label-${exId}`);
@@ -3263,15 +3320,17 @@
           fill.style.background =
             pct >= 100
               ? "var(--legs)"
-              : pct >= 70
+              : pct >= 80
                 ? "var(--gold)"
                 : `var(--${color})`;
         }
         if (label && !appState.completed[getLocalDateStr()]) {
           const unit = getVarType(exId) === "hold" ? "s" : "reps";
+          const unitLabel =
+            getVarType(exId) === "hold" ? "Best hold" : "Best set";
           label.textContent =
             total > 0
-              ? `${total} / ${maxTotal} ${unit} (${pct}%)${pct >= 100 ? " — Target Hit! ✓" : ""}`
+              ? `${unitLabel}: ${bestSet}${unit} · Total: ${total}${unit}${pct >= 100 ? " — Ready to level up ✓" : ""}`
               : `Enter ${unit} above`;
         }
 
@@ -3298,7 +3357,7 @@
 
         updateRepProgress(exId, ex.sets, color);
         updateDailyVolume();
-        saveState();
+        saveState(true);
       }
 
       function updateDailyVolume() {
@@ -3351,18 +3410,28 @@
       }
 
       function exportData() {
-        const json = JSON.stringify(appState, null, 2);
-        const blob = new Blob([json], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${appState.name ? appState.name.toLowerCase().replace(/\s+/g, "-") + "-" : ""}hq-backup-${getLocalDateStr()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast(
-          "💾",
-          `<strong>Data exported.</strong><br>Save that file somewhere safe.`,
-        );
+        const EXPORT_MSGS = [
+          ["Encrypting your gains...", "Compiling history"],
+          ["Packing your PRs...", "Serialising records"],
+          ["Bundling progression levels...", "Almost ready"],
+          ["Sealing the vault...", "One moment"],
+          ["Done. Stay backed up.", "Download starting"],
+        ];
+
+        showTransferOverlay(EXPORT_MSGS, 400, () => {
+          const json = JSON.stringify(appState, null, 2);
+          const blob = new Blob([json], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${appState.name ? appState.name.toLowerCase().replace(/\s+/g, "-") + "-" : ""}hq-backup-${getLocalDateStr()}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast(
+            "<img src='export.png' style='width:24px;height:24px;'>",
+            `<strong>Data exported.</strong><br>Save that file somewhere safe.`,
+          );
+        });
       }
 
       function importData() {
@@ -3372,33 +3441,73 @@
         input.onchange = (e) => {
           const file = e.target.files[0];
           if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            try {
-              const parsed = JSON.parse(ev.target.result);
-              if (!parsed.onboarded) throw new Error("Invalid backup file");
-              appState = { ...appState, ...parsed };
-              saveState();
-              document
-                .getElementById("settings-modal")
-                .classList.remove("show");
-              initUI();
-              showToast(
-                "✅",
-                `<strong>Import successful, ${parsed.name || "Athlete"}.</strong><br>All your history, PRs and progression restored. You're good to go.`,
-              );
-            } catch (err) {
-              showToast(
-                "❌",
-                `<strong>Import failed.</strong><br>File doesn't look right. Use a valid backup.`,
-              );
-            }
-          };
-          reader.readAsText(file);
+
+          const IMPORT_MSGS = [
+            ["Hold on tight...", "Reading backup file"],
+            ["Decrypting your gains...", "Parsing data"],
+            ["Restoring progression levels...", "Rebuilding variations"],
+            ["Reloading your history...", "Almost there"],
+            [`You're back.`, "Welcome home"],
+          ];
+
+          showTransferOverlay(IMPORT_MSGS, 500, () => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              try {
+                const parsed = JSON.parse(ev.target.result);
+                if (!parsed.onboarded) throw new Error("Invalid backup file");
+                appState = { ...appState, ...parsed };
+                saveState();
+                document
+                  .getElementById("settings-modal")
+                  .classList.remove("show");
+                initUI();
+                showToast(
+                  "✅",
+                  `<strong>Welcome back, ${parsed.name || "Athlete"}.</strong><br>All your history, PRs and progression restored.`,
+                );
+              } catch (err) {
+                showToast(
+                  "❌",
+                  `<strong>Import failed.</strong><br>File doesn't look right. Use a valid backup.`,
+                );
+              }
+            };
+            reader.readAsText(file);
+          });
         };
         input.click();
       }
 
+      function showTransferOverlay(messages, interval, onComplete) {
+        const overlay = document.getElementById("transfer-overlay");
+        const msgEl = document.getElementById("transfer-msg");
+        const subEl = document.getElementById("transfer-sub");
+
+        overlay.classList.add("show");
+        let i = 0;
+
+        msgEl.textContent = messages[0][0];
+        subEl.textContent = messages[0][1];
+
+        const cycle = setInterval(() => {
+          i++;
+          if (i >= messages.length) {
+            clearInterval(cycle);
+            setTimeout(() => {
+              overlay.classList.remove("show");
+              onComplete();
+            }, 400);
+            return;
+          }
+          msgEl.style.opacity = "0";
+          setTimeout(() => {
+            msgEl.textContent = messages[i][0];
+            subEl.textContent = messages[i][1];
+            msgEl.style.opacity = "1";
+          }, 200);
+        }, interval);
+      }
       // ============================================================
       // GRAPH
       // ============================================================
