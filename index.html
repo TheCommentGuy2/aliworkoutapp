@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Calithex</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="icon" type="image/png" href="box.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -1404,6 +1405,15 @@
   <body>
     <!-- TOP NAV -->
     <div class="top-nav">
+      <button
+        class="nav-btn"
+        id="nav-signout"
+        onclick="handleSignOut()"
+        title="Sign Out"
+        style="display: none"
+      >
+        🚪
+      </button>
       <button class="nav-btn" onclick="openPRModal()" title="Personal Records">
         <img src="best.png" style="width: 22px; height: 22px" />
       </button>
@@ -2204,6 +2214,133 @@
       </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- AUTH MODAL                                                   -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="auth-modal">
+      <div class="modal-box" style="max-width: 400px; text-align: center">
+        <div class="modal-header">HQ Access</div>
+        <div class="modal-sub">
+          Log in to sync your progress securely across all devices.
+        </div>
+
+        <div class="form-group" style="text-align: left">
+          <input
+            type="email"
+            id="auth-email"
+            class="form-control"
+            placeholder="Email Address"
+          />
+        </div>
+        <div class="form-group" style="text-align: left; margin-bottom: 10px">
+          <input
+            type="password"
+            id="auth-password"
+            class="form-control"
+            placeholder="Password"
+          />
+        </div>
+
+        <div
+          id="auth-error"
+          style="
+            color: var(--push);
+            font-size: 13px;
+            margin-bottom: 16px;
+            min-height: 18px;
+          "
+        ></div>
+
+        <div style="display: flex; gap: 10px">
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 14px"
+            onclick="handleEmailAuth('signup')"
+          >
+            Sign Up
+          </button>
+          <button
+            class="save-btn"
+            style="flex: 1; margin: 0"
+            onclick="handleEmailAuth('signin')"
+          >
+            Sign In
+          </button>
+        </div>
+
+        <button
+          class="g-btn"
+          style="
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-color: var(--pull);
+            color: var(--pull);
+          "
+          onclick="handleMagicLink()"
+        >
+          ✨ Send Magic Link
+        </button>
+
+        <div style="margin: 24px 0; border-top: 1px solid var(--border)"></div>
+
+        <button
+          class="g-btn"
+          style="width: 100%; padding: 12px; border-color: var(--muted)"
+          onclick="continueAsGuest()"
+        >
+          Continue as Guest
+        </button>
+        <div
+          style="
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 12px;
+            line-height: 1.5;
+          "
+        >
+          ⚠️ Guest data is saved locally on this browser. It will not sync and
+          may be lost if you clear your browser cache.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- GUEST MIGRATION MODAL                                        -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="migrate-modal">
+      <div class="modal-box" style="max-width: 420px; text-align: center">
+        <div class="modal-header">Local Data Found</div>
+        <div class="modal-sub">
+          You have guest training logs saved on this device. Do you want to
+          migrate them to your new account?
+          <br /><br /><strong style="color: var(--push)">Warning:</strong> This
+          will overwrite any empty cloud state.
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px">
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px"
+            onclick="discardLocalData()"
+          >
+            Discard Local
+          </button>
+          <button
+            class="save-btn"
+            style="
+              flex: 1;
+              margin: 0;
+              background: var(--gold);
+              color: var(--bg);
+            "
+            onclick="migrateLocalData()"
+          >
+            Migrate Data
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- TRANSFER OVERLAY -->
     <div id="transfer-overlay" class="transfer-overlay">
       <div class="transfer-spinner"></div>
@@ -2218,6 +2355,22 @@
     </div>
 
     <script>
+      // ============================================================
+      // SUPABASE & STATE INIT
+      // ============================================================
+      const SUPABASE_URL = "https://qdzupoeysskwbjjrncgr.supabase.co";
+
+      const SUPABASE_ANON_KEY = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkenVwb2V5c3Nrd2JqanJuY2dyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODU4MTEsImV4cCI6MjA4ODI2MTgxMX0.hZzMZODpM9B7Ym7rx3UskCeGLV84s3FvQkH4x5kK0Qw`;
+
+      // 🚨 NOTICE THE CHANGE HERE: 'supabaseClient' instead of 'supabase'
+      const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY,
+      );
+
+      let currentUser = null;
+      let isGuest = localStorage.getItem("hq_is_guest") === "true";
+
       // ============================================================
       // PROGRESSION LISTS
       // ============================================================
@@ -2538,24 +2691,99 @@
         return appState.split === "6day" ? SCHEDULE_6DAY : SCHEDULE_DEFAULT;
       }
 
-      function loadState() {
-        let isFirstRun = true;
+      // Listen for Auth changes continuously (🚨 CHANGED TO supabaseClient)
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          currentUser = session.user;
+          document.getElementById("nav-signout").style.display = "flex";
+          document.getElementById("auth-modal").classList.remove("show");
+          isGuest = false;
+          localStorage.removeItem("hq_is_guest");
+        } else if (event === "SIGNED_OUT") {
+          currentUser = null;
+          document.getElementById("nav-signout").style.display = "none";
+          appState = {}; // clear memory
+          document.getElementById("auth-modal").classList.add("show");
+        }
+      });
+
+      // ============================================================
+      // STATE LOAD & SAVE
+      // ============================================================
+      async function loadState() {
+        // 🚨 CHANGED TO supabaseClient
+        const {
+          data: { session },
+        } = await supabaseClient.auth.getSession();
+
+        if (session) {
+          currentUser = session.user;
+          document.getElementById("nav-signout").style.display = "flex";
+          await loadFromSupabase();
+        } else if (isGuest) {
+          loadLocalState();
+          initAppAfterLoad();
+        } else {
+          document.getElementById("auth-modal").classList.add("show");
+        }
+      }
+
+      function loadLocalState() {
         try {
           const saved = localStorage.getItem("hq_workout_state");
           if (saved) {
             const parsed = JSON.parse(saved);
             appState = { ...appState, ...parsed };
-            if (appState.onboarded) isFirstRun = false;
           }
         } catch (e) {
           console.error(e);
         }
+      }
+
+      async function loadFromSupabase() {
+        try {
+          // 🚨 CHANGED TO supabaseClient
+          const { data, error } = await supabaseClient
+            .from("user_data")
+            .select("app_state")
+            .eq("user_id", currentUser.id)
+            .single();
+
+          const localSaved = localStorage.getItem("hq_workout_state");
+          const localData = localSaved ? JSON.parse(localSaved) : null;
+
+          if (
+            data &&
+            data.app_state &&
+            Object.keys(data.app_state).length > 0
+          ) {
+            // Cloud Data Exists
+            appState = { ...appState, ...data.app_state };
+            localStorage.setItem("hq_workout_state", JSON.stringify(appState)); // Cache locally
+            initAppAfterLoad();
+          } else if (localData && localData.onboarded) {
+            // No cloud data, but user has local guest data
+            appState = { ...appState, ...localData };
+            document.getElementById("migrate-modal").classList.add("show");
+          } else {
+            // New user, completely blank
+            initAppAfterLoad();
+          }
+        } catch (error) {
+          console.error("Cloud load error:", error);
+          loadLocalState(); // Fallback
+          initAppAfterLoad();
+        }
+      }
+
+      function initAppAfterLoad() {
+        let isFirstRun = !appState.onboarded;
 
         const todayStr = getLocalDateStr();
         if (appState.date !== todayStr) {
           appState.date = todayStr;
           appState.reps = {};
-          saveState();
+          saveState(true);
         }
 
         Object.values(EXERCISES)
@@ -2563,12 +2791,8 @@
           .forEach((ex) => {
             if (!appState.reps[ex.id])
               appState.reps[ex.id] = Array(ex.sets).fill("");
-          });
 
-        // Snapshot baseline from saved variations before UI builds
-        Object.values(EXERCISES)
-          .flat()
-          .forEach((ex) => {
+            // Snapshot baseline before UI builds
             if (!sessionBaseline[ex.id]) {
               sessionBaseline[ex.id] =
                 appState.variations[ex.id] || ex.progressions[0].name;
@@ -2579,7 +2803,7 @@
         else initUI();
       }
 
-      function saveState(skipRender = false) {
+      async function saveState(skipRender = false) {
         if (appState.history) {
           Object.keys(appState.history).forEach((dateStr) => {
             const val = appState.history[dateStr];
@@ -2592,11 +2816,109 @@
             }
           });
         }
+
+        // Save cache
         localStorage.setItem("hq_workout_state", JSON.stringify(appState));
+
+        // Sync to Cloud
+        if (currentUser) {
+          // 🚨 CHANGED TO supabaseClient
+          supabaseClient
+            .from("user_data")
+            .upsert({
+              user_id: currentUser.id,
+              app_state: appState,
+            })
+            .then(({ error }) => {
+              if (error) console.error("Cloud sync error:", error);
+            });
+        }
+
         if (!skipRender) {
           renderGraph();
           renderStats();
         }
+      }
+
+      // ============================================================
+      // AUTH CONTROLLERS
+      // ============================================================
+      function showAuthError(msg) {
+        document.getElementById("auth-error").textContent = msg;
+      }
+
+      async function handleEmailAuth(action) {
+        const email = document.getElementById("auth-email").value;
+        const password = document.getElementById("auth-password").value;
+        if (!email || !password)
+          return showAuthError("Email and password required.");
+
+        showAuthError("Checking...");
+        let error;
+        if (action === "signup") {
+          // 🚨 CHANGED TO supabaseClient
+          const res = await supabaseClient.auth.signUp({ email, password });
+          error = res.error;
+          if (!error && res.data.user && !res.data.session) {
+            return showAuthError("Check your email for the confirmation link.");
+          }
+        } else {
+          // 🚨 CHANGED TO supabaseClient
+          const res = await supabaseClient.auth.signInWithPassword({
+            email,
+            password,
+          });
+          error = res.error;
+        }
+
+        if (error) {
+          showAuthError(error.message);
+        } else {
+          document.getElementById("auth-modal").classList.remove("show");
+          document.getElementById("auth-error").textContent = "";
+          loadState();
+        }
+      }
+
+      async function handleMagicLink() {
+        const email = document.getElementById("auth-email").value;
+        if (!email) return showAuthError("Email required for magic link.");
+
+        showAuthError("Sending...");
+        // 🚨 CHANGED TO supabaseClient
+        const { error } = await supabaseClient.auth.signInWithOtp({ email });
+        if (error) showAuthError(error.message);
+        else showAuthError("✨ Magic link sent! Check your inbox.");
+      }
+
+      function continueAsGuest() {
+        localStorage.setItem("hq_is_guest", "true");
+        isGuest = true;
+        document.getElementById("auth-modal").classList.remove("show");
+        loadState();
+      }
+
+      async function handleSignOut() {
+        // 🚨 CHANGED TO supabaseClient
+        await supabaseClient.auth.signOut();
+      }
+
+      // ============================================================
+      // MIGRATION CONTROLLERS
+      // ============================================================
+      async function migrateLocalData() {
+        document.getElementById("migrate-modal").classList.remove("show");
+        showToast("⏳", "Migrating data to cloud...");
+        await saveState(true);
+        initAppAfterLoad();
+        showToast("✅", "Data successfully synced to account.");
+      }
+
+      function discardLocalData() {
+        document.getElementById("migrate-modal").classList.remove("show");
+        localStorage.removeItem("hq_workout_state");
+        appState = {};
+        initAppAfterLoad();
       }
 
       // ============================================================
@@ -2785,6 +3107,16 @@
           completed: {},
           personalRecords: {},
         };
+
+        // Sync wipe to cloud
+        if (currentUser) {
+          // 🚨 CHANGED TO supabaseClient
+          supabaseClient.from("user_data").upsert({
+            user_id: currentUser.id,
+            app_state: appState,
+          });
+        }
+
         document.getElementById("reset-modal").classList.remove("show");
         showToast(
           "🔄",
