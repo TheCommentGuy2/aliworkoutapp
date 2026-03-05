@@ -2494,6 +2494,16 @@
               appState.reps[ex.id] = Array(ex.sets).fill("");
           });
 
+        // Snapshot baseline from saved variations before UI builds
+        Object.values(EXERCISES)
+          .flat()
+          .forEach((ex) => {
+            if (!sessionBaseline[ex.id]) {
+              sessionBaseline[ex.id] =
+                appState.variations[ex.id] || ex.progressions[0].name;
+            }
+          });
+
         if (isFirstRun) openSettings(true);
         else initUI();
       }
@@ -2718,26 +2728,34 @@
       function confirmResetToday() {
         const todayStr = getLocalDateStr();
 
+        const todayType = getSchedule()[getLocalTime().getDay()].type;
         const sessionVariations = appState.completedVariations?.[todayStr];
+        const sessionPRs = appState.sessionPRs?.[todayStr];
+
+        // Capture varNames BEFORE any rollback happens
+        const varNameSnapshot = {};
+        if (todayType !== "rest") {
+          EXERCISES[todayType].forEach((ex) => {
+            varNameSnapshot[ex.id] =
+              (sessionVariations || appState.variations)[ex.id] ||
+              ex.progressions[0].name;
+          });
+        }
+
+        // Now roll back variations
         if (sessionVariations) {
           Object.assign(appState.variations, sessionVariations);
           delete appState.completedVariations[todayStr];
         }
-
-        // Also revert any in-session level changes back to baseline
         Object.keys(sessionBaseline).forEach((exId) => {
           appState.variations[exId] = sessionBaseline[exId];
         });
 
-        const sessionPRs = appState.sessionPRs?.[todayStr];
+        // Now roll back PRs using the pre-rollback varNames
         if (sessionPRs !== undefined) {
-          const today2 = getLocalTime().getDay();
-          const type2 = getSchedule()[today2].type;
-          if (type2 !== "rest") {
-            EXERCISES[type2].forEach((ex) => {
-              const varName =
-                (sessionVariations || appState.variations)[ex.id] ||
-                ex.progressions[0].name;
+          if (todayType !== "rest") {
+            EXERCISES[todayType].forEach((ex) => {
+              const varName = varNameSnapshot[ex.id];
               if (sessionPRs[varName]) {
                 appState.personalRecords[varName] = sessionPRs[varName];
               } else {
@@ -2754,7 +2772,7 @@
             appState.reps[ex.id] = Array(ex.sets).fill("");
           });
         delete appState.completed[todayStr];
-        appState.history[todayStr] = 0;
+        appState.history[todayStr] = { total: 0, type: null, exercises: {} };
 
         // Clear baseline so it re-snapshots correctly on next initUI
         sessionBaseline = {};
@@ -3321,7 +3339,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `hq-backup-${getLocalDateStr()}.json`;
+        a.download = `${appState.name ? appState.name.toLowerCase().replace(/\s+/g, "-") + "-" : ""}hq-backup-${getLocalDateStr()}.json`;
         a.click();
         URL.revokeObjectURL(url);
         showToast(
