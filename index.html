@@ -3424,7 +3424,9 @@
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
-          a.download = `${appState.name ? appState.name.toLowerCase().replace(/\s+/g, "-") + "-" : ""}hq-backup-${getLocalDateStr()}.json`;
+          const t = getLocalTime();
+          const timestamp = `${getLocalDateStr()}-${String(t.getHours()).padStart(2, "0")}${String(t.getMinutes()).padStart(2, "0")}${String(t.getSeconds()).padStart(2, "0")}`;
+          a.download = `${appState.name ? appState.name.toLowerCase().replace(/\s+/g, "-") + "-" : ""}hq-backup-${timestamp}.json`;
           a.click();
           URL.revokeObjectURL(url);
           showToast(
