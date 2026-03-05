@@ -1437,7 +1437,7 @@
           <span id="greeting-chip-text">Local Time</span>
         </div>
         <p class="hero-greeting" id="hero-greeting">Loading —</p>
-        <h1 class="hero-name">
+        <h1 class="hero-name" onclick="openEditName()" style="cursor: pointer;" title="Change Display Name">
           <span class="user-name" id="hero-user-name">Athlete</span
           ><span class="dot">.</span>
         </h1>
@@ -2219,6 +2219,23 @@
       </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- EDIT NAME MODAL                                              -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="edit-name-modal">
+      <div class="modal-box" style="max-width: 360px; text-align: center">
+        <div class="modal-header">Update Name</div>
+        <div class="modal-sub">Change how you are addressed by the system.</div>
+        <div class="form-group" style="text-align: left; margin-top: 20px;">
+          <input type="text" id="new-display-name" class="form-control" placeholder="Enter new Operative Name" />
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px">
+          <button class="g-btn" style="flex: 1; padding: 12px" onclick="document.getElementById('edit-name-modal').classList.remove('show')">Cancel</button>
+          <button class="save-btn" style="flex: 1; margin: 0; background: var(--gold); color: var(--bg);" onclick="saveNewName()">Save Name</button>
+        </div>
+      </div>
+    </div>
+
     <!-- LEVEL CHANGE MODAL -->
     <div class="modal-overlay" id="level-modal">
       <div class="modal-box" style="max-width: 420px">
@@ -2250,7 +2267,7 @@
       <div class="modal-box" style="max-width: 400px; text-align: center">
         <div class="modal-header">Welcome to Calithex</div>
         <div class="modal-sub">
-          Create a unique username to sync your progress.
+          Create a unique username or log back in to sync your progress.
           <br /><br />
           <strong style="color: var(--push)">⚠️ WARNING:</strong> If you forget your password, there is NO WAY to recover your account. Write it down, or ensure you regularly export your backup data manually.
         </div>
@@ -2363,6 +2380,36 @@
             onclick="confirmSignOut()"
           >
             Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SETTINGS WARNING MODAL                                       -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="settings-confirm-modal">
+      <div class="modal-box" style="max-width: 420px; text-align: center">
+        <div class="modal-header">⚠️ Reset Routine?</div>
+        <div class="modal-sub" style="text-align: left; background: rgba(255,77,46,0.08); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,77,46,0.2); margin-bottom: 20px;">
+          <strong>This will reset today's active session.</strong><br><br>
+          • <strong>To change Name only:</strong> Click your name on the home screen instead. It's safer.<br>
+          • <strong>To change Split/Exercises:</strong> Continue below. This will apply the specific variations selected in the dropdowns.
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px"
+            onclick="document.getElementById('settings-confirm-modal').classList.remove('show')"
+          >
+            Cancel
+          </button>
+          <button
+            class="save-btn"
+            style="flex: 1; margin: 0; background: var(--push); color: #000;"
+            onclick="executeSaveSettings()"
+          >
+            Yes, Re-Initialize
           </button>
         </div>
       </div>
@@ -3163,32 +3210,52 @@
       }
 
       function saveSettings() {
-        const nameVal =
-          document.getElementById("setup-name").value.trim() || "Athlete";
+        // If it's a brand new user (first run), just save immediately. No warning needed.
+        if (!appState.onboarded) {
+          executeSaveSettings();
+          return;
+        }
+
+        // If it's an existing user, STOP and show the warning.
+        document.getElementById("settings-confirm-modal").classList.add("show");
+      }
+
+      function executeSaveSettings() {
+        // 1. Close Modals
+        document.getElementById("settings-confirm-modal").classList.remove("show");
+        document.getElementById("settings-modal").classList.remove("show");
+
+        // 2. Capture Values
+        const nameVal = document.getElementById("setup-name").value.trim() || "Athlete";
         const splitVal = document.getElementById("setup-split").value;
 
+        // 3. Update State
         appState.name = nameVal;
         appState.split = splitVal;
 
+        // 4. Apply Exercises from Dropdowns (This overwrites current levels)
         const assignments = computeVariationAssignments();
         Object.assign(appState.variations, assignments);
 
+        // 5. Reset Reps for the new routine structure
         Object.values(EXERCISES)
           .flat()
           .forEach((ex) => {
             appState.reps[ex.id] = Array(ex.sets).fill("");
           });
 
+        // 6. Save & Refresh
         appState.onboarded = true;
+        sessionBaseline = {}; // Force fresh snapshot
         saveState();
-        document.getElementById("settings-modal").classList.remove("show");
-        initUI();
+        
+        initUI(); // Re-render the app
+        
         showToast(
-          "✅",
-          `<strong>Programme Calibrated</strong><br>All exercises assigned. Let's go.`,
+          "🔄",
+          `<strong>Programme Re-Initialized.</strong><br>Split and exercises updated.`
         );
       }
-
       function forceReset() {
         // Close settings modal first, open reset flow
         document.getElementById("settings-modal").classList.remove("show");
@@ -4532,6 +4599,27 @@
       <div class="stat-sub">scheduled sessions</div>
     </div>
   `;
+      }
+
+      // ============================================================
+      // QUICK NAME EDIT
+      // ============================================================
+      function openEditName() {
+        // Only allow edits if the user has already onboarded
+        if (!appState.onboarded) return; 
+        document.getElementById("new-display-name").value = appState.name || "";
+        document.getElementById("edit-name-modal").classList.add("show");
+      }
+
+      function saveNewName() {
+        const newName = document.getElementById("new-display-name").value.trim();
+        if (newName) {
+          appState.name = newName;
+          saveState(true); // Save to Supabase and LocalStorage
+          updateHero();    // Instantly update the UI
+          document.getElementById("edit-name-modal").classList.remove("show");
+          showToast("✅", "Display name updated.");
+        }
       }
 
       // ============================================================
