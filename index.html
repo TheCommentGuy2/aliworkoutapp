@@ -1080,6 +1080,85 @@
         font-size: 15px;
       }
 
+      /* LEVEL CONTROLS */
+      .level-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .level-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--s2);
+        color: var(--dim);
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      .level-btn:hover {
+        color: var(--text);
+        border-color: var(--muted);
+      }
+      .level-btn.down:hover {
+        border-color: rgba(255, 77, 46, 0.5);
+        color: var(--push);
+        background: rgba(255, 77, 46, 0.08);
+      }
+      .level-btn.up:hover {
+        border-color: rgba(57, 255, 143, 0.5);
+        color: var(--legs);
+        background: rgba(57, 255, 143, 0.08);
+      }
+      .level-btn:disabled {
+        opacity: 0.2;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      .level-tag {
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 1px;
+      }
+      .level-tag.modified {
+        color: var(--gold);
+      }
+
+      /* LEVEL CONFIRM MODAL */
+      #level-modal .modal-box {
+        max-width: 420px;
+      }
+      .level-modal-detail {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+        margin: 16px 0;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      .level-modal-detail .from {
+        color: var(--push);
+      }
+      .level-modal-detail .to {
+        color: var(--legs);
+      }
+      .level-modal-detail .revert {
+        color: var(--gold);
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-top: 6px;
+        display: block;
+      }
+
       @keyframes fadeUp {
         from {
           opacity: 0;
@@ -1850,6 +1929,31 @@
       </div>
     </div>
 
+    <!-- LEVEL CHANGE MODAL -->
+    <div class="modal-overlay" id="level-modal">
+      <div class="modal-box" style="max-width: 420px">
+        <div class="modal-header" id="level-modal-title">Change Level?</div>
+        <div class="modal-sub" id="level-modal-sub"></div>
+        <div class="level-modal-detail" id="level-modal-detail"></div>
+        <div style="display: flex; gap: 10px; margin-top: 8px">
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px; font-size: 13px"
+            onclick="closeLevelModal()"
+          >
+            Cancel
+          </button>
+          <button
+            class="save-btn"
+            style="flex: 1; margin: 0"
+            id="level-modal-confirm"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- TOAST -->
     <div class="toast" id="toast">
       <span class="toast-icon" id="toast-icon">🔥</span>
@@ -2162,6 +2266,8 @@
         personalRecords: {},
       };
 
+      let sessionBaseline = {};
+
       function getLocalTime() {
         return new Date();
       }
@@ -2412,18 +2518,19 @@
       function confirmResetToday() {
         const todayStr = getLocalDateStr();
 
-        // Restore variations that were active at the start of the session
         const sessionVariations = appState.completedVariations?.[todayStr];
         if (sessionVariations) {
           Object.assign(appState.variations, sessionVariations);
           delete appState.completedVariations[todayStr];
         }
 
-        // Roll back PRs set during this session
+        // Also revert any in-session level changes back to baseline
+        Object.keys(sessionBaseline).forEach((exId) => {
+          appState.variations[exId] = sessionBaseline[exId];
+        });
+
         const sessionPRs = appState.sessionPRs?.[todayStr];
         if (sessionPRs !== undefined) {
-          // sessionPRs holds the PRs that existed BEFORE this session
-          // So for each exercise in today's session, restore or delete
           const today2 = getLocalTime().getDay();
           const type2 = getSchedule()[today2].type;
           if (type2 !== "rest") {
@@ -2432,10 +2539,8 @@
                 (sessionVariations || appState.variations)[ex.id] ||
                 ex.progressions[0].name;
               if (sessionPRs[varName]) {
-                // There was a pre-existing PR — restore it
                 appState.personalRecords[varName] = sessionPRs[varName];
               } else {
-                // No PR existed before this session — delete it entirely
                 delete appState.personalRecords[varName];
               }
             });
@@ -2450,6 +2555,10 @@
           });
         delete appState.completed[todayStr];
         appState.history[todayStr] = 0;
+
+        // Clear baseline so it re-snapshots correctly on next initUI
+        sessionBaseline = {};
+
         saveState();
         initUI();
         document.getElementById("reset-today-modal").classList.remove("show");
@@ -2457,8 +2566,7 @@
           "🔄",
           `<strong>Log Reset</strong><br>Today's numbers cleared. PRs rolled back.`,
         );
-      }
-      // ============================================================
+      } // ============================================================
       // FINISH WORKOUT
       // ============================================================
       let pendingUpgrades = [];
@@ -2478,7 +2586,12 @@
             const threshold = varType === "hold" ? 60 : 50;
             const anySetHit50 = vals.some((v) => parseInt(v) >= threshold);
 
-            if (anySetHit50) {
+            const baseline = sessionBaseline[ex.id] || ex.progressions[0].name;
+            const isOnBaseline =
+              (appState.variations[ex.id] || ex.progressions[0].name) ===
+              baseline;
+
+            if (anySetHit50 && isOnBaseline) {
               const currentName =
                 appState.variations[ex.id] || ex.progressions[0].name;
               const currentIdx = ex.progressions.findIndex(
@@ -2769,7 +2882,6 @@
           row.id = `row-${ex.id}`;
 
           const colorVar = `var(--${ex.color})`;
-          const todayStr = getLocalDateStr();
           const sessionVariations =
             isDayComplete && appState.completedVariations?.[todayStr]
               ? appState.completedVariations[todayStr]
@@ -2778,7 +2890,6 @@
             sessionVariations[ex.id] || ex.progressions[0].name;
           const slotInfo = SLOT_LABELS[ex.id];
 
-          // Hit target = any single set >= 50 reps
           const vals = appState.reps[ex.id] || [];
           const varType = getVarType(ex.id);
           const threshold = varType === "hold" ? 60 : 50;
@@ -2795,14 +2906,14 @@
           let setsHTML = "";
           for (let i = 0; i < ex.sets; i++) {
             const val = appState.reps[ex.id][i] || "";
-            const varType = getVarType(ex.id);
-            const threshold = varType === "hold" ? 60 : 50;
-            const maxed = val !== "" && Number(val) >= threshold ? "maxed" : "";
+            const vt = getVarType(ex.id);
+            const thr = vt === "hold" ? 60 : 50;
+            const maxed = val !== "" && Number(val) >= thr ? "maxed" : "";
             setsHTML += `
         <div class="set-input-wrap">
           <div class="set-num">SET ${i + 1}</div>
           <input type="number" class="rep-input ${maxed}" id="inp-${ex.id}-${i}"
-            placeholder="${getVarType(ex.id) === "hold" ? "s" : "-"}"
+            placeholder="${vt === "hold" ? "s" : "-"}"
             ${isDayComplete ? "disabled" : ""}
             oninput="handleRepInput('${ex.id}',${i},'${ex.color}')"
             value="${val}">
@@ -2812,10 +2923,33 @@
           const readinessHTML =
             isDayComplete && hitTarget && nextProg
               ? `<div class="readiness-hint visible">
-           <strong>🔼 ${getVarType(ex.id) === "hold" ? "Hit 60s hold — ready to level up?" : "Hit 50+ reps — ready to level up?"}</strong>
+           <strong>🔼 ${varType === "hold" ? "Hit 60s hold — ready to level up?" : "Hit 50+ reps — ready to level up?"}</strong>
            Next session, consider: <em>${nextProg.name}</em>
          </div>`
               : `<div class="readiness-hint"></div>`;
+
+          // Level controls — only show on today's active block, session not complete
+          let levelControlsHTML = "";
+          if (isTodayBlock && !isDayComplete) {
+            const baseline = sessionBaseline[ex.id] || ex.progressions[0].name;
+            const baselineIdx = ex.progressions.findIndex(
+              (p) => p.name === baseline,
+            );
+            const isModified = currentName !== baseline;
+            const canDown = currentIdx > 0;
+            const canUp = isModified && currentIdx < baselineIdx;
+
+            levelControlsHTML = `
+        <div class="level-controls">
+          <button class="level-btn down" ${canDown ? "" : "disabled"}
+            onclick="requestLevelChange('${ex.id}', 'down')" title="Drop one level">−</button>
+          <span class="level-tag ${isModified ? "modified" : ""}">
+            ${isModified ? `Today: Level ${currentIdx + 1} <span style="color:var(--muted)">/ Base: Level ${baselineIdx + 1}</span>` : `Level ${currentIdx + 1}`}
+          </span>
+          <button class="level-btn up" ${canUp ? "" : "disabled"}
+            onclick="requestLevelChange('${ex.id}', 'up')" title="Go up one level">+</button>
+        </div>`;
+          }
 
           row.innerHTML = `
       <div class="ex-top">
@@ -2823,19 +2957,20 @@
           <div class="ex-name-row">
             <span class="ex-category">${slotInfo.focus}</span>
           </div>
-          <div class="ex-name">${currentName}</div>
+          <div class="ex-name" id="ex-name-${ex.id}">${currentName}</div>
           <div class="ex-variation-tag">
             <span>${slotInfo.label}</span>
             ${currentIdx > 0 ? `<span style="color:var(--legs);border-color:rgba(57,255,143,0.2)">Level ${currentIdx + 1}</span>` : ""}
           </div>
+          ${levelControlsHTML}
           <div class="ex-note">${ex.note}</div>
         </div>
         <div class="sets-display" style="color:${colorVar}">
-          ${ex.sets} sets · <span style="font-size:14px;opacity:0.7;letter-spacing:0.5px">${getVarType(ex.id) === "hold" ? "30–60s hold" : "30–50 reps"}</span>
+          ${ex.sets} sets · <span style="font-size:14px;opacity:0.7;letter-spacing:0.5px">${varType === "hold" ? "30–60s hold" : "30–50 reps"}</span>
         </div>
       </div>
       <div class="rep-tracker">
-        <span class="rt-label">${getVarType(ex.id) === "hold" ? "Log Secs" : "Log Reps"}</span>
+        <span class="rt-label">${varType === "hold" ? "Log Secs" : "Log Reps"}</span>
         <div class="rep-sets">${setsHTML}</div>
         <div class="progress-bar-wrap">
           <div class="progress-bar">
@@ -3140,9 +3275,123 @@
       }
 
       // ============================================================
+      // LEVEL CHANGE (TEMPORARY DOWNGRADE / RE-UPGRADE)
+      // ============================================================
+      let pendingLevelChange = null;
+
+      function requestLevelChange(exId, direction) {
+        const ex = Object.values(EXERCISES)
+          .flat()
+          .find((e) => e.id === exId);
+        const currentName =
+          appState.variations[exId] || ex.progressions[0].name;
+        const currentIdx = ex.progressions.findIndex(
+          (p) => p.name === currentName,
+        );
+        const baseline = sessionBaseline[exId] || ex.progressions[0].name;
+        const baselineIdx = ex.progressions.findIndex(
+          (p) => p.name === baseline,
+        );
+
+        let targetIdx;
+        if (direction === "down") {
+          targetIdx = currentIdx - 1;
+        } else {
+          targetIdx = currentIdx + 1;
+          // Cannot exceed baseline via manual upgrade
+          if (targetIdx > baselineIdx) return;
+        }
+
+        if (targetIdx < 0 || targetIdx >= ex.progressions.length) return;
+
+        const targetName = ex.progressions[targetIdx].name;
+        const isDown = direction === "down";
+
+        pendingLevelChange = { exId, targetName, targetIdx };
+
+        document.getElementById("level-modal-title").textContent = isDown
+          ? "Drop a Level?"
+          : "Step Back Up?";
+        document.getElementById("level-modal-sub").textContent = isDown
+          ? "This is for today only. You'll return to your baseline next session."
+          : "Stepping back up toward your baseline for today.";
+        document.getElementById("level-modal-detail").innerHTML = `
+    <span class="${isDown ? "from" : "to"}">${currentName}</span>
+    <span style="color:var(--muted)"> → </span>
+    <span class="${isDown ? "to" : "from"}">${targetName}</span>
+    <span class="revert">↩ Reverts to: ${baseline} next session</span>`;
+
+        const confirmBtn = document.getElementById("level-modal-confirm");
+        confirmBtn.textContent = isDown ? "Yes, Drop Down" : "Yes, Step Up";
+        confirmBtn.style.background = isDown
+          ? "rgba(255,77,46,0.15)"
+          : "var(--text)";
+        confirmBtn.style.color = isDown ? "var(--push)" : "var(--bg)";
+        confirmBtn.style.border = isDown
+          ? "1px solid rgba(255,77,46,0.3)"
+          : "none";
+        confirmBtn.onclick = confirmLevelChange;
+
+        document.getElementById("level-modal").classList.add("show");
+      }
+
+      function confirmLevelChange() {
+        if (!pendingLevelChange) return;
+        const { exId, targetName } = pendingLevelChange;
+
+        // Clear reps for this exercise since variation changed
+        const ex = Object.values(EXERCISES)
+          .flat()
+          .find((e) => e.id === exId);
+        appState.reps[exId] = Array(ex.sets).fill("");
+        appState.variations[exId] = targetName;
+
+        // Do NOT persist this as completedVariations — baseline handles revert
+        saveState();
+        closeLevelModal();
+
+        // Rebuild just today's block
+        const today = getLocalTime().getDay();
+        const type = getSchedule()[today].type;
+        buildExerciseList(type);
+        EXERCISES[type].forEach((e) =>
+          updateRepProgress(e.id, e.sets, e.color),
+        );
+        updateDailyVolume();
+
+        // Re-open the block since buildExerciseList resets it
+        openBlock(type);
+
+        pendingLevelChange = null;
+        showToast(
+          "🔄",
+          `<strong>Level changed.</strong><br>Now on: ${targetName}`,
+        );
+      }
+
+      function closeLevelModal() {
+        document.getElementById("level-modal").classList.remove("show");
+        pendingLevelChange = null;
+      }
+
+      // ============================================================
       // INIT
       // ============================================================
       function initUI() {
+        // Snapshot baseline at session start (in-memory only, not persisted)
+        const todayStr = getLocalDateStr();
+        const isDayComplete = !!appState.completed[todayStr];
+        if (!isDayComplete) {
+          Object.values(EXERCISES)
+            .flat()
+            .forEach((ex) => {
+              if (!sessionBaseline[ex.id]) {
+                sessionBaseline[ex.id] =
+                  appState.variations[ex.id] || ex.progressions[0].name;
+              }
+            });
+        }
+
         updateHero();
         buildWeekStrip();
         ["push", "pull", "legs"].forEach((day) => {
@@ -3154,7 +3403,6 @@
         renderGraph();
 
         const today = getLocalTime().getDay();
-        const todayStr = getLocalDateStr();
         const sess = getSchedule()[today];
         const isComplete = !!appState.completed[todayStr];
 
