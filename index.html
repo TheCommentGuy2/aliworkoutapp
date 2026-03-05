@@ -389,13 +389,20 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .graph-filters {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
       }
       .graph-container {
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
-        height: 100px;
-        gap: 8px;
+        height: 120px;
+        gap: 6px;
         padding-top: 10px;
       }
       .graph-bar-wrap {
@@ -411,7 +418,7 @@
         width: 100%;
         max-width: 30px;
         background: var(--border);
-        border-radius: 4px;
+        border-radius: 4px 4px 0 0;
         transition:
           height 0.4s ease,
           background 0.4s ease;
@@ -421,22 +428,39 @@
       .graph-bar:hover::after {
         content: attr(data-val);
         position: absolute;
-        top: -25px;
+        top: -28px;
         left: 50%;
         transform: translateX(-50%);
         background: var(--text);
         color: var(--bg);
         font-size: 10px;
-        padding: 3px 6px;
+        padding: 3px 7px;
         border-radius: 4px;
         font-weight: bold;
         white-space: nowrap;
+        z-index: 10;
+      }
+      .graph-bar.missed {
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 3px,
+          rgba(255, 77, 46, 0.15) 3px,
+          rgba(255, 77, 46, 0.15) 6px
+        );
+        border: 1px dashed rgba(255, 77, 46, 0.3);
+        border-radius: 4px;
       }
       .graph-day {
-        font-size: 10px;
+        font-size: 9px;
         color: var(--muted);
         text-transform: uppercase;
         letter-spacing: 1px;
+        text-align: center;
+      }
+      .graph-day.today-label {
+        color: var(--text);
+        font-weight: 700;
       }
       .graph-empty {
         width: 100%;
@@ -462,7 +486,6 @@
         display: block;
         margin-bottom: 4px;
       }
-
       .g-btn {
         background: transparent;
         border: 1px solid var(--border);
@@ -473,6 +496,7 @@
         cursor: pointer;
         text-transform: uppercase;
         font-family: "Outfit", sans-serif;
+        transition: all 0.2s;
       }
       .g-btn:hover {
         color: var(--text);
@@ -482,6 +506,102 @@
         background: var(--s2);
         color: var(--gold);
         border-color: var(--gold);
+      }
+      .g-btn.filter-push.active {
+        color: var(--push);
+        border-color: var(--push);
+        background: rgba(255, 77, 46, 0.08);
+      }
+      .g-btn.filter-pull.active {
+        color: var(--pull);
+        border-color: var(--pull);
+        background: rgba(46, 196, 255, 0.08);
+      }
+      .g-btn.filter-legs.active {
+        color: var(--legs);
+        border-color: var(--legs);
+        background: rgba(57, 255, 143, 0.08);
+      }
+
+      /* STATS CARDS */
+      .stats-section {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 10px;
+      }
+      .stat-card {
+        background: var(--s1);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        transition:
+          border-color 0.2s,
+          transform 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--muted);
+      }
+      .stat-label {
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .stat-val {
+        font-family: "Syne", sans-serif;
+        font-size: 26px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text);
+      }
+      .stat-val.gold {
+        color: var(--gold);
+      }
+      .stat-val.push {
+        color: var(--push);
+      }
+      .stat-val.pull {
+        color: var(--pull);
+      }
+      .stat-val.legs {
+        color: var(--legs);
+      }
+      .stat-sub {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      .streak-fire {
+        display: inline-block;
+        animation: pulse 2s ease infinite;
+      }
+
+      /* GRAPH LEGEND */
+      .graph-legend {
+        display: flex;
+        gap: 14px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        flex-shrink: 0;
       }
 
       /* WORKOUT BLOCKS */
@@ -1324,12 +1444,22 @@
         <div class="week-strip" id="week-strip"></div>
       </div>
 
+      <!-- STATS CARDS -->
+      <div class="stats-section" id="stats-section"></div>
+
       <!-- VOLUME GRAPH -->
-      <div class="graph-section">
+      <div class="graph-section" style="margin-top: 16px">
         <div class="graph-header">
-          <div style="display: flex; gap: 10px; align-items: center">
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              align-items: center;
+              flex-wrap: wrap;
+            "
+          >
             <span>Volume History</span>
-            <div style="display: flex; gap: 4px">
+            <div class="graph-filters">
               <button
                 class="g-btn active"
                 onclick="setGraphMode('week')"
@@ -1352,6 +1482,29 @@
                 Year
               </button>
             </div>
+            <div class="graph-filters" id="type-filters">
+              <button
+                class="g-btn filter-push active"
+                onclick="toggleTypeFilter('push')"
+                id="filter-push"
+              >
+                Push
+              </button>
+              <button
+                class="g-btn filter-pull active"
+                onclick="toggleTypeFilter('pull')"
+                id="filter-pull"
+              >
+                Pull
+              </button>
+              <button
+                class="g-btn filter-legs active"
+                onclick="toggleTypeFilter('legs')"
+                id="filter-legs"
+              >
+                Legs
+              </button>
+            </div>
           </div>
           <span
             id="today-vol-total"
@@ -1360,6 +1513,39 @@
           >
         </div>
         <div class="graph-container" id="volume-graph"></div>
+        <div class="graph-legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--push)"></div>
+            Push
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--pull)"></div>
+            Pull
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--legs)"></div>
+            Legs
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--gold)"></div>
+            Today
+          </div>
+          <div class="legend-item">
+            <div
+              class="legend-dot"
+              style="
+                background: repeating-linear-gradient(
+                  45deg,
+                  transparent,
+                  transparent 2px,
+                  rgba(255, 77, 46, 0.4) 2px,
+                  rgba(255, 77, 46, 0.4) 4px
+                );
+              "
+            ></div>
+            Missed
+          </div>
+        </div>
       </div>
 
       <!-- PUSH BLOCK -->
@@ -2139,7 +2325,7 @@
             id: "push_vert",
             label: "Vertical Push",
             focus: "Dip Family",
-            note: "Keep elbows close. Control the descent.",
+            note: "Explode up, lower fast. No lockout at top — keep the tension.",
             sets: 3,
             color: "push",
             progressions: PROG_VERT_PUSH,
@@ -2148,7 +2334,7 @@
             id: "push_horiz",
             label: "Horizontal Push",
             focus: "Push-up Family",
-            note: "Continuous tension — no locking elbows.",
+            note: "Rapid fire reps. Chest stays loaded the entire set.",
             sets: 3,
             color: "push",
             progressions: PROG_HORIZ_PUSH,
@@ -2157,7 +2343,7 @@
             id: "push_shoulder",
             label: "Overhead Press",
             focus: "Shoulder Family",
-            note: "Vertical path. Constant motion, no resting.",
+            note: "Drive hard overhead. No pause at top or bottom — continuous.",
             sets: 3,
             color: "push",
             progressions: PROG_SHOULDER,
@@ -2166,7 +2352,7 @@
             id: "push_core",
             label: "Core",
             focus: "Push Emphasis",
-            note: "Quality over speed. Control every rep.",
+            note: "Max tension, zero rest. Hold as long as you can fight for it.",
             sets: 2,
             color: "push",
             progressions: PROG_CORE_PUSH,
@@ -2177,7 +2363,7 @@
             id: "pull_vert",
             label: "Vertical Pull",
             focus: "Pull-up Family",
-            note: "Full dead hang at bottom. Chin clears the bar.",
+            note: "Dead hang to explosive pull. More reps, faster tempo.",
             sets: 3,
             color: "pull",
             progressions: PROG_VERT_PULL,
@@ -2186,7 +2372,7 @@
             id: "pull_horiz",
             label: "Horizontal Pull",
             focus: "Row Family",
-            note: "Squeeze shoulder blades. Rapid tempo.",
+            note: "Snap the bar to your chest. Shoulder blades fire every rep.",
             sets: 3,
             color: "pull",
             progressions: PROG_HORIZ_PULL,
@@ -2195,7 +2381,7 @@
             id: "pull_core",
             label: "Core",
             focus: "Pull Emphasis",
-            note: "Control the descent. No swinging.",
+            note: "As many as you can, as fast as you can. Maintain your form.",
             sets: 2,
             color: "pull",
             progressions: PROG_CORE_PULL,
@@ -2206,7 +2392,7 @@
             id: "legs_squat",
             label: "Squat",
             focus: "Bilateral Quad",
-            note: "Full depth. Do not lock knees at top.",
+            note: "Pump the legs. Fast tempo, full depth, no lockout at top.",
             sets: 3,
             color: "legs",
             progressions: PROG_SQUAT,
@@ -2215,7 +2401,7 @@
             id: "legs_single",
             label: "Single-Leg Squat",
             focus: "Unilateral",
-            note: "Balance + control. Each leg counted separately.",
+            note: "Chase reps on each leg. Drive through the heel explosively.",
             sets: 3,
             color: "legs",
             progressions: PROG_SINGLE_LEG,
@@ -2224,7 +2410,7 @@
             id: "legs_glute",
             label: "Glute",
             focus: "Posterior Chain",
-            note: "Squeeze hard at top. 1 second hold each rep.",
+            note: "Squeeze hard at top and hold. Drive the hips as high as possible.",
             sets: 3,
             color: "legs",
             progressions: PROG_GLUTE,
@@ -2233,7 +2419,7 @@
             id: "legs_calf",
             label: "Calf",
             focus: "Calf Endurance",
-            note: "Slow negatives. Full stretch at the bottom.",
+            note: "Bounce at the bottom, explode up. Chase the burn.",
             sets: 2,
             color: "legs",
             progressions: PROG_CALF,
@@ -2242,7 +2428,7 @@
             id: "legs_core",
             label: "Core",
             focus: "Leg Day",
-            note: "Controlled reps only. No momentum.",
+            note: "Fast reps. Speed demon.",
             sets: 2,
             color: "legs",
             progressions: PROG_CORE_LEGS,
@@ -2313,8 +2499,22 @@
       }
 
       function saveState() {
+        // Migrate any legacy flat number history entries to rich format
+        if (appState.history) {
+          Object.keys(appState.history).forEach((dateStr) => {
+            const val = appState.history[dateStr];
+            if (typeof val === "number") {
+              appState.history[dateStr] = {
+                total: val,
+                type: null,
+                exercises: {},
+              };
+            }
+          });
+        }
         localStorage.setItem("hq_workout_state", JSON.stringify(appState));
         renderGraph();
+        renderStats();
       }
 
       // ============================================================
@@ -2652,13 +2852,25 @@
         });
 
         const todayStr = getLocalDateStr();
+
+        // Declare FIRST before any usage
+        const today2 = getLocalTime().getDay();
+        const type2 = getSchedule()[today2].type;
+
         appState.completed[todayStr] = true;
         appState.completedVariations = appState.completedVariations || {};
         appState.completedVariations[todayStr] = preUpgradeVariations;
 
-        // Declare type2 BEFORE using it
-        const today2 = getLocalTime().getDay();
-        const type2 = getSchedule()[today2].type;
+        // Lock session type into rich history entry
+        if (type2 !== "rest") {
+          const existing = appState.history?.[todayStr];
+          appState.history[todayStr] = {
+            ...(typeof existing === "object"
+              ? existing
+              : { total: existing || 0 }),
+            type: type2,
+          };
+        }
 
         // Snapshot which PRs existed before this session (for reset rollback)
         appState.sessionPRs = appState.sessionPRs || {};
@@ -2667,8 +2879,8 @@
           EXERCISES[type2].forEach((ex) => {
             const varName =
               preUpgradeVariations[ex.id] || ex.progressions[0].name;
-            const existing = appState.personalRecords?.[varName];
-            if (existing) appState.sessionPRs[todayStr][varName] = existing;
+            const prevPR = appState.personalRecords?.[varName];
+            if (prevPR) appState.sessionPRs[todayStr][varName] = prevPR;
           });
         }
 
@@ -3056,17 +3268,49 @@
 
       function updateDailyVolume() {
         const todayStr = getLocalDateStr();
+        const today = getLocalTime().getDay();
+        const type = getSchedule()[today].type;
+
         let total = 0;
+        const exercises = {};
+
         Object.values(EXERCISES)
           .flat()
           .forEach((ex) => {
-            (appState.reps[ex.id] || []).forEach((v) => {
+            const sets = (appState.reps[ex.id] || []).map((v) => {
               const p = parseInt(v);
-              if (!isNaN(p)) total += p;
+              return isNaN(p) ? 0 : p;
             });
+            const exTotal = sets.reduce((a, b) => a + b, 0);
+            total += exTotal;
+            if (exTotal > 0) {
+              exercises[ex.id] = {
+                sets,
+                variation:
+                  appState.variations[ex.id] || ex.progressions[0].name,
+                total: exTotal,
+              };
+            }
           });
+
         if (!appState.history) appState.history = {};
-        appState.history[todayStr] = total;
+
+        // Preserve rich format if already exists, otherwise build it
+        const existing = appState.history[todayStr];
+        if (typeof existing === "object" && existing !== null) {
+          appState.history[todayStr] = {
+            ...existing,
+            total,
+            exercises,
+          };
+        } else {
+          appState.history[todayStr] = {
+            total,
+            type: type !== "rest" ? type : null,
+            exercises,
+          };
+        }
+
         document.getElementById("today-vol-total").textContent =
           `Today: ${total}`;
       }
@@ -3121,14 +3365,44 @@
       // GRAPH
       // ============================================================
       let graphMode = "week";
+      let activeTypeFilters = new Set(["push", "pull", "legs"]);
 
       function setGraphMode(mode) {
         graphMode = mode;
         document
-          .querySelectorAll(".g-btn")
+          .querySelectorAll(".g-btn[id^='btn-']")
           .forEach((b) => b.classList.remove("active"));
         document.getElementById(`btn-${mode}`).classList.add("active");
         renderGraph();
+      }
+
+      function toggleTypeFilter(type) {
+        if (activeTypeFilters.has(type)) {
+          if (activeTypeFilters.size === 1) return; // keep at least one
+          activeTypeFilters.delete(type);
+          document.getElementById(`filter-${type}`).classList.remove("active");
+        } else {
+          activeTypeFilters.add(type);
+          document.getElementById(`filter-${type}`).classList.add("active");
+        }
+        renderGraph();
+      }
+
+      function getHistoryTotal(dateStr) {
+        const entry = appState.history?.[dateStr];
+        if (!entry) return { total: 0, type: null };
+        if (typeof entry === "number") return { total: entry, type: null };
+
+        // Filter by active type filters
+        if (entry.type && !activeTypeFilters.has(entry.type))
+          return { total: 0, type: entry.type, filtered: true };
+
+        return { total: entry.total || 0, type: entry.type };
+      }
+
+      function getScheduledType(date) {
+        const sched = getSchedule();
+        return sched[date.getDay()]?.type || "rest";
       }
 
       function renderGraph() {
@@ -3138,36 +3412,59 @@
 
         const hist = appState.history || {};
         const histEntries = Object.entries(hist)
-          .map(([d, v]) => ({ date: new Date(d), dateStr: d, vol: v }))
+          .map(([d, v]) => ({
+            date: new Date(d + "T00:00:00"),
+            dateStr: d,
+            vol: typeof v === "object" ? v.total : v,
+          }))
           .sort((a, b) => a.date - b.date);
 
         let chartData = [];
         let maxVol = 1;
+        const todayStr = getLocalDateStr();
 
         if (graphMode === "week") {
           const today = getLocalTime();
           for (let i = 6; i >= 0; i--) {
             const d = new Date(today.getTime() - i * 86400000);
             const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-            const vol = hist[dateStr] || 0;
-            if (vol > maxVol) maxVol = vol;
+            const { total, type, filtered } = getHistoryTotal(dateStr);
+            const scheduledType = getScheduledType(d);
+            const isPast = dateStr < todayStr;
+            const isMissed =
+              isPast && scheduledType !== "rest" && total === 0 && !filtered;
+
+            if (total > maxVol) maxVol = total;
             chartData.push({
               label: i === 0 ? "Today" : DAYS[d.getDay()].substring(0, 3),
-              vol,
+              vol: total,
+              type,
+              scheduledType,
               isHighlight: i === 0,
+              isMissed,
+              dateStr,
             });
           }
         } else if (graphMode === "month") {
           const today = getLocalTime();
-          for (let i = 13; i >= 0; i--) {
+          for (let i = 27; i >= 0; i--) {
             const d = new Date(today.getTime() - i * 86400000);
             const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-            const vol = hist[dateStr] || 0;
-            if (vol > maxVol) maxVol = vol;
+            const { total, type, filtered } = getHistoryTotal(dateStr);
+            const scheduledType = getScheduledType(d);
+            const isPast = dateStr < todayStr;
+            const isMissed =
+              isPast && scheduledType !== "rest" && total === 0 && !filtered;
+
+            if (total > maxVol) maxVol = total;
             chartData.push({
-              label: String(d.getDate()),
-              vol,
-              isHighlight: dateStr === getLocalDateStr(),
+              label: i % 7 === 0 ? String(d.getDate()) : "",
+              vol: total,
+              type,
+              scheduledType,
+              isHighlight: dateStr === todayStr,
+              isMissed,
+              dateStr,
             });
           }
         } else {
@@ -3186,18 +3483,35 @@
             "N",
             "D",
           ];
-          for (let i = 5; i >= 0; i--) {
+          for (let i = 11; i >= 0; i--) {
             const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
             let vol = 0;
+            let dominantType = null;
+            let typeCounts = { push: 0, pull: 0, legs: 0 };
             histEntries.forEach((e) => {
-              if (e.dateStr.startsWith(key)) vol += e.vol;
+              if (e.dateStr.startsWith(key)) {
+                const entry = hist[e.dateStr];
+                const t = typeof entry === "object" ? entry.type : null;
+                if (t && activeTypeFilters.has(t)) {
+                  vol += e.vol;
+                  if (t) typeCounts[t] = (typeCounts[t] || 0) + 1;
+                } else if (!t) {
+                  vol += e.vol;
+                }
+              }
             });
+            dominantType = Object.entries(typeCounts).sort(
+              (a, b) => b[1] - a[1],
+            )[0]?.[0];
             if (vol > maxVol) maxVol = vol;
             chartData.push({
               label: months[d.getMonth()],
               vol,
+              type: dominantType,
               isHighlight: i === 0,
+              isMissed: false,
+              dateStr: key,
             });
           }
         }
@@ -3210,33 +3524,56 @@
         <div class="graph-empty-icon">📊</div>
         <div class="graph-empty-text">
           <strong>No volume logged yet</strong>
-          Complete your first session and lock it to start seeing your history here.
+          Complete your first session to see history here.
         </div>
       </div>`;
           document.getElementById("today-vol-total").textContent = "Today: 0";
           return;
         }
 
+        const typeColors = {
+          push: "var(--push)",
+          pull: "var(--pull)",
+          legs: "var(--legs)",
+        };
+
         chartData.forEach((data) => {
           const wrap = document.createElement("div");
           wrap.className = "graph-bar-wrap";
           const hPct =
             maxVol > 0
-              ? Math.max(data.vol > 0 ? 8 : 0, (data.vol / maxVol) * 100)
+              ? Math.max(data.vol > 0 ? 6 : 0, (data.vol / maxVol) * 100)
               : 0;
-          const color = data.isHighlight
-            ? "var(--gold)"
-            : data.vol > 0
-              ? "var(--pull)"
-              : "var(--border)";
-          wrap.innerHTML = `
-      <div class="graph-bar" style="height:${hPct}%;background:${color}" data-val="${data.vol}"></div>
-      <div class="graph-day" style="${data.isHighlight ? "color:var(--text);font-weight:700;" : ""}">${data.label}</div>`;
+
+          let barColor;
+          if (data.isHighlight) barColor = "var(--gold)";
+          else if (data.isMissed) barColor = "transparent";
+          else if (data.type && typeColors[data.type])
+            barColor = typeColors[data.type];
+          else if (data.vol > 0) barColor = "var(--dim)";
+          else barColor = "var(--border)";
+
+          const bar = document.createElement("div");
+          bar.className = `graph-bar${data.isMissed ? " missed" : ""}`;
+          bar.style.height = data.isMissed ? "100%" : `${hPct}%`;
+          bar.style.background = barColor;
+          bar.setAttribute(
+            "data-val",
+            data.isMissed ? "Missed" : String(data.vol),
+          );
+
+          const label = document.createElement("div");
+          label.className = `graph-day${data.isHighlight ? " today-label" : ""}`;
+          label.textContent = data.label;
+
+          wrap.appendChild(bar);
+          wrap.appendChild(label);
           container.appendChild(wrap);
         });
 
+        const todayEntry = getHistoryTotal(todayStr);
         document.getElementById("today-vol-total").textContent =
-          `Today: ${hist[getLocalDateStr()] || 0}`;
+          `Today: ${todayEntry.total}`;
       }
 
       // ============================================================
@@ -3377,6 +3714,163 @@
         pendingLevelChange = null;
       }
 
+      function renderStats() {
+        const container = document.getElementById("stats-section");
+        if (!container) return;
+
+        const hist = appState.history || {};
+        const todayStr = getLocalDateStr();
+        const prs = appState.personalRecords || {};
+
+        // Total sessions
+        const totalSessions = Object.keys(appState.completed || {}).length;
+
+        // Current streak
+        let streak = 0;
+        const sched = getSchedule();
+        const today = getLocalTime();
+        for (let i = 0; i < 365; i++) {
+          const d = new Date(today.getTime() - i * 86400000);
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const scheduledType = sched[d.getDay()]?.type;
+          if (scheduledType === "rest") continue;
+          if (appState.completed?.[dateStr]) {
+            streak++;
+          } else if (dateStr < todayStr) {
+            break; // missed a scheduled day — streak over
+          }
+        }
+
+        // Best session volume
+        let bestVol = 0;
+        let bestVolDate = null;
+        Object.entries(hist).forEach(([dateStr, entry]) => {
+          const vol = typeof entry === "object" ? entry.total : entry;
+          if (vol > bestVol) {
+            bestVol = vol;
+            bestVolDate = dateStr;
+          }
+        });
+
+        // Average reps per set (last 7 days)
+        let totalRepsLast7 = 0;
+        let totalSetsLast7 = 0;
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(today.getTime() - i * 86400000);
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const entry = hist[dateStr];
+          if (entry && typeof entry === "object" && entry.exercises) {
+            Object.values(entry.exercises).forEach((ex) => {
+              ex.sets.forEach((s) => {
+                if (s > 0) {
+                  totalRepsLast7 += s;
+                  totalSetsLast7++;
+                }
+              });
+            });
+          }
+        }
+        const avgReps =
+          totalSetsLast7 > 0 ? Math.round(totalRepsLast7 / totalSetsLast7) : 0;
+
+        // Days since last PR
+        let daysSincePR = null;
+        let lastPRDate = null;
+        // We don't store PR dates yet so show total PR count instead
+        const totalPRs = Object.keys(prs).length;
+
+        // Missed sessions last 30 days — only count days after first session
+        let missedSessions = 0;
+        const firstSessionDate = Object.keys(
+          appState.completed || {},
+        ).sort()[0];
+        if (firstSessionDate) {
+          for (let i = 1; i < 30; i++) {
+            const d = new Date(today.getTime() - i * 86400000);
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            if (dateStr < firstSessionDate) break; // don't count before app was started
+            const scheduledType = sched[d.getDay()]?.type;
+            if (scheduledType !== "rest" && !appState.completed?.[dateStr])
+              missedSessions++;
+          }
+        }
+
+        // Volume trend — this week vs last week
+        let thisWeekVol = 0,
+          lastWeekVol = 0;
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(today.getTime() - i * 86400000);
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const entry = hist[dateStr];
+          thisWeekVol += entry
+            ? typeof entry === "object"
+              ? entry.total
+              : entry
+            : 0;
+        }
+        for (let i = 7; i < 14; i++) {
+          const d = new Date(today.getTime() - i * 86400000);
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const entry = hist[dateStr];
+          lastWeekVol += entry
+            ? typeof entry === "object"
+              ? entry.total
+              : entry
+            : 0;
+        }
+        const volTrend =
+          lastWeekVol === 0
+            ? null
+            : Math.round(((thisWeekVol - lastWeekVol) / lastWeekVol) * 100);
+        const trendColor =
+          volTrend === null
+            ? "var(--muted)"
+            : volTrend >= 0
+              ? "var(--legs)"
+              : "var(--push)";
+        const trendSign = volTrend === null ? "" : volTrend >= 0 ? "+" : "";
+
+        container.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Sessions</div>
+      <div class="stat-val gold">${totalSessions}</div>
+      <div class="stat-sub">sessions completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Current Streak</div>
+      <div class="stat-val" style="color:var(--gold)">
+        ${streak} <span class="streak-fire" style="font-size:20px">${streak >= 3 ? "🔥" : "💤"}</span>
+      </div>
+      <div class="stat-sub">scheduled sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Best Session</div>
+      <div class="stat-val gold">${bestVol}</div>
+      <div class="stat-sub">${bestVolDate ? `reps on ${bestVolDate.slice(5).replace("-", "/")}` : "no data yet"}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Reps / Set</div>
+      <div class="stat-val">${avgReps || "—"}</div>
+      <div class="stat-sub">last 7 days</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Volume Trend</div>
+      <div class="stat-val" style="color:${trendColor}">${volTrend === null ? "—" : `${trendSign}${volTrend}%`}</div>
+      <div class="stat-sub">this week vs last</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Personal Records</div>
+      <div class="stat-val gold">${totalPRs}</div>
+      <div class="stat-sub">variations tracked</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Missed (30d)</div>
+      <div class="stat-val" style="color:${missedSessions > 3 ? "var(--push)" : missedSessions > 0 ? "var(--gold)" : "var(--legs)"}">${missedSessions}</div>
+      <div class="stat-sub">scheduled sessions</div>
+    </div>
+  `;
+      }
+
       // ============================================================
       // INIT
       // ============================================================
@@ -3404,6 +3898,7 @@
           );
         });
         renderGraph();
+        renderStats();
 
         const today = getLocalTime().getDay();
         const sess = getSchedule()[today];
