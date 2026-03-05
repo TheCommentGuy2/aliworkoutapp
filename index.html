@@ -2682,7 +2682,10 @@
             (appState.reps[ex.id] || []).forEach((v) => {
               const val = parseInt(v);
               if (!isNaN(val) && val > 0) {
-                const varType = getVarType(ex.id);
+                const varType = (() => {
+                  const entry = ex.progressions.find((p) => p.name === varName);
+                  return entry?.type || "reps";
+                })();
                 const prev = appState.personalRecords[varName]?.value || 0;
                 if (val > prev) {
                   appState.personalRecords[varName] = {
