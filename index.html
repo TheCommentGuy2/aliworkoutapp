@@ -2190,6 +2190,35 @@
       </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- IMPORT CONFIRM MODAL                                         -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="import-confirm-modal">
+      <div class="modal-box" style="max-width: 420px; text-align: center">
+        <div class="modal-header" id="import-modal-title">Overwrite Data?</div>
+        <div class="modal-sub" id="import-modal-msg">
+          This will overwrite your current programme with the backup file. Continue?
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px">
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px"
+            onclick="document.getElementById('import-confirm-modal').classList.remove('show')"
+          >
+            Cancel
+          </button>
+          <button
+            class="save-btn"
+            id="import-confirm-btn"
+            style="flex: 1; margin: 0; background: var(--gold); color: var(--bg);"
+            onclick="executeImport()"
+          >
+            Yes, Import
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- LEVEL CHANGE MODAL -->
     <div class="modal-overlay" id="level-modal">
       <div class="modal-box" style="max-width: 420px">
@@ -3864,6 +3893,9 @@
         });
       }
 
+      // Variable to hold the file data while the user clicks "Confirm"
+      let pendingImportData = null;
+
       function importData() {
         const input = document.createElement("input");
         input.type = "file";
@@ -3882,30 +3914,33 @@
               const getLatestDate = (state) => Object.keys(state.history || {}).sort().pop() || "";
               const currentLatest = getLatestDate(appState);
               const importLatest = getLatestDate(parsed);
+              const isOlder = currentLatest && importLatest && currentLatest > importLatest;
 
-              if (currentLatest && importLatest && currentLatest > importLatest) {
-                const proceed = confirm("⚠️ WARNING: The backup you are trying to import is OLDER than your current progress!\n\nIf you continue, you will lose your recent logs.\n\nAre you absolutely sure you want to overwrite your current data?");
-                if (!proceed) return; // User cancelled
+              // Store data temporarily
+              pendingImportData = parsed;
+
+              // Setup Modal Text based on age
+              const titleEl = document.getElementById("import-modal-title");
+              const msgEl = document.getElementById("import-modal-msg");
+              const btnEl = document.getElementById("import-confirm-btn");
+
+              if (isOlder) {
+                titleEl.innerHTML = "⚠️ Older Backup Detected";
+                msgEl.innerHTML = "The backup you are trying to import is <strong>OLDER</strong> than your current progress!<br><br>If you continue, you will lose your recent logs. Are you absolutely sure you want to overwrite your current data?";
+                btnEl.textContent = "Yes, Downgrade";
+                btnEl.style.background = "var(--push)";
+                btnEl.style.color = "#000";
               } else {
-                const proceed = confirm("This will overwrite your current programme with the backup file. Continue?");
-                if (!proceed) return; // User cancelled
+                titleEl.innerHTML = "Overwrite Data?";
+                msgEl.innerHTML = "This will overwrite your current programme with the backup file.<br><br>Continue?";
+                btnEl.textContent = "Yes, Import";
+                btnEl.style.background = "var(--gold)";
+                btnEl.style.color = "var(--bg)";
               }
 
-              const IMPORT_MSGS =[
-                ["Hold on tight...", "Reading backup file"],
-                ["Decrypting your gains...", "Parsing data"],
-                ["Restoring progression levels...", "Rebuilding variations"],
-                ["Reloading your history...", "Almost there"],
-                [`You're back.`, "Welcome home"],
-              ];
+              // Show Modal
+              document.getElementById("import-confirm-modal").classList.add("show");
 
-              showTransferOverlay(IMPORT_MSGS, 500, () => {
-                appState = { ...appState, ...parsed };
-                saveState();
-                document.getElementById("settings-modal").classList.remove("show");
-                initUI();
-                showToast("✅", `<strong>Welcome back, ${parsed.name || "Athlete"}.</strong><br>Data successfully restored and synced.`);
-              });
             } catch (err) {
               showToast("❌", `<strong>Import failed.</strong><br>File doesn't look right. Use a valid backup.`);
             }
@@ -3913,6 +3948,28 @@
           reader.readAsText(file);
         };
         input.click();
+      }
+
+      function executeImport() {
+        if (!pendingImportData) return;
+        
+        // Hide modal
+        document.getElementById("import-confirm-modal").classList.remove("show");
+
+        const IMPORT_MSGS =[["Hold on tight...", "Reading backup file"],
+          ["Decrypting your gains...", "Parsing data"],["Restoring progression levels...", "Rebuilding variations"],
+          ["Reloading your history...", "Almost there"],[`You're back.`, "Welcome home"],
+        ];
+
+        // Run the cool loading animation
+        showTransferOverlay(IMPORT_MSGS, 500, () => {
+          appState = { ...appState, ...pendingImportData };
+          saveState();
+          document.getElementById("settings-modal").classList.remove("show");
+          initUI();
+          showToast("✅", `<strong>Welcome back, ${pendingImportData.name || "Athlete"}.</strong><br>Data successfully restored and synced.`);
+          pendingImportData = null; // Clear memory
+        });
       }
       
       function showTransferOverlay(messages, interval, onComplete) {
