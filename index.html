@@ -1875,6 +1875,22 @@
             Factory Reset — Wipe All Data
           </button>
         </div>
+        <div
+          style="
+            font-size: 11px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 16px;
+            padding: 10px 14px;
+            background: rgba(255, 77, 46, 0.05);
+            border: 1px solid rgba(255, 77, 46, 0.15);
+            border-radius: 8px;
+          "
+        >
+          ⚠️ Only press below if starting fresh. If you have a backup, use
+          <strong style="color: var(--gold)">Import Backup</strong> above
+          instead.
+        </div>
         <button class="save-btn" onclick="saveSettings()">
           Initialize Programme
         </button>
@@ -3363,10 +3379,13 @@
               if (!parsed.onboarded) throw new Error("Invalid backup file");
               appState = { ...appState, ...parsed };
               saveState();
+              document
+                .getElementById("settings-modal")
+                .classList.remove("show");
               initUI();
               showToast(
                 "✅",
-                `<strong>Data imported.</strong><br>All history and progress restored.`,
+                `<strong>Import successful, ${parsed.name || "Athlete"}.</strong><br>All your history, PRs and progression restored. You're good to go.`,
               );
             } catch (err) {
               showToast(
