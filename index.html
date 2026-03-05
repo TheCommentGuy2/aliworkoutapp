@@ -1404,11 +1404,12 @@
   </head>
   <body>
     <!-- TOP NAV -->
+    <!-- TOP NAV -->
     <div class="top-nav">
       <button
         class="nav-btn"
         id="nav-signout"
-        onclick="handleSignOut()"
+        onclick="openSignOutModal()"
         title="Sign Out"
         style="display: none"
       >
@@ -2213,7 +2214,6 @@
         </div>
       </div>
     </div>
-
     <!-- ============================================================ -->
     <!-- AUTH MODAL                                                   -->
     <!-- ============================================================ -->
@@ -2221,25 +2221,31 @@
       <div class="modal-box" style="max-width: 400px; text-align: center">
         <div class="modal-header">HQ Access</div>
         <div class="modal-sub">
-          Log in to sync your progress securely across all devices.
+          Create a unique username to sync your progress.
+          <br /><br />
+          <strong style="color: var(--push)">⚠️ WARNING:</strong> If you forget your password, there is NO WAY to recover your account. Write it down, or ensure you regularly export your backup data manually.
         </div>
 
         <div class="form-group" style="text-align: left">
           <input
-            type="email"
-            id="auth-email"
+            type="text"
+            id="auth-username"
             class="form-control"
-            placeholder="Email Address"
+            placeholder="Username (no spaces)"
           />
         </div>
-        <div class="form-group" style="text-align: left; margin-bottom: 10px">
+        <div class="form-group" style="text-align: left; margin-bottom: 10px; position: relative;">
           <input
             type="password"
             id="auth-password"
             class="form-control"
-            placeholder="Password"
+            placeholder="Password (min 6 characters)"
+            style="padding-right: 40px;"
           />
-        </div>
+          <button type="button" onclick="togglePassword()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.6;">
+            👁️
+          </button>
+        </div>  
 
         <div
           id="auth-error"
@@ -2255,56 +2261,20 @@
           <button
             class="g-btn"
             style="flex: 1; padding: 14px"
-            onclick="handleEmailAuth('signup')"
+            onclick="handleAuth('signup')"
           >
             Sign Up
           </button>
           <button
             class="save-btn"
             style="flex: 1; margin: 0"
-            onclick="handleEmailAuth('signin')"
+            onclick="handleAuth('signin')"
           >
             Sign In
           </button>
         </div>
-
-        <button
-          class="g-btn"
-          style="
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            border-color: var(--pull);
-            color: var(--pull);
-          "
-          onclick="handleMagicLink()"
-        >
-          ✨ Send Magic Link
-        </button>
-
-        <div style="margin: 24px 0; border-top: 1px solid var(--border)"></div>
-
-        <button
-          class="g-btn"
-          style="width: 100%; padding: 12px; border-color: var(--muted)"
-          onclick="continueAsGuest()"
-        >
-          Continue as Guest
-        </button>
-        <div
-          style="
-            font-size: 11px;
-            color: var(--muted);
-            margin-top: 12px;
-            line-height: 1.5;
-          "
-        >
-          ⚠️ Guest data is saved locally on this browser. It will not sync and
-          may be lost if you clear your browser cache.
-        </div>
       </div>
     </div>
-
     <!-- ============================================================ -->
     <!-- GUEST MIGRATION MODAL                                        -->
     <!-- ============================================================ -->
@@ -2341,6 +2311,71 @@
       </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- SIGN OUT MODAL                                               -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="signout-modal">
+      <div class="modal-box" style="max-width: 400px; text-align: center">
+        <div class="modal-header">Sign Out?</div>
+        <div class="modal-sub">
+          Are you sure you want to sign out?<br />Your data is safely synced to the cloud.
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px">
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px"
+            onclick="closeSignOutModal()"
+          >
+            Cancel
+          </button>
+          <button
+            class="save-btn"
+            style="flex: 1; margin: 0; background: var(--push); color: #000;"
+            onclick="confirmSignOut()"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SIGN UP CONFIRMATION MODAL                                   -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="signup-confirm-modal">
+      <div class="modal-box" style="max-width: 400px; text-align: center">
+        <div class="modal-header">Save Your Vault Key</div>
+        <div class="modal-sub">
+          There is <strong style="color: var(--push)">NO password reset</strong>. If you lose these, your account is gone forever. Write them down right now.
+        </div>
+        
+        <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 20px; text-align: left;">
+          <div style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Username</div>
+          <div id="confirm-username-display" style="font-size: 18px; font-weight: bold; margin-bottom: 12px; color: var(--text);"></div>
+          
+          <div style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Password</div>
+          <div id="confirm-password-display" style="font-size: 18px; font-weight: bold; color: var(--gold);"></div>
+        </div>
+
+        <div style="display: flex; gap: 10px">
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px"
+            onclick="document.getElementById('signup-confirm-modal').classList.remove('show')"
+          >
+            Wait, go back
+          </button>
+          <button
+            class="save-btn"
+            style="flex: 1; margin: 0; background: var(--legs); color: #000;"
+            onclick="executeSignUp()"
+          >
+            I wrote it down
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- TRANSFER OVERLAY -->
     <div id="transfer-overlay" class="transfer-overlay">
       <div class="transfer-spinner"></div>
@@ -2369,7 +2404,6 @@
       );
 
       let currentUser = null;
-      let isGuest = localStorage.getItem("hq_is_guest") === "true";
 
       // ============================================================
       // PROGRESSION LISTS
@@ -2691,18 +2725,29 @@
         return appState.split === "6day" ? SCHEDULE_6DAY : SCHEDULE_DEFAULT;
       }
 
-      // Listen for Auth changes continuously (🚨 CHANGED TO supabaseClient)
+      // Listen for Auth changes continuously
       supabaseClient.auth.onAuthStateChange((event, session) => {
         if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
           currentUser = session.user;
           document.getElementById("nav-signout").style.display = "flex";
           document.getElementById("auth-modal").classList.remove("show");
-          isGuest = false;
-          localStorage.removeItem("hq_is_guest");
+          localStorage.removeItem("hq_is_guest"); // Clean up old guest flags
         } else if (event === "SIGNED_OUT") {
           currentUser = null;
           document.getElementById("nav-signout").style.display = "none";
-          appState = {}; // clear memory
+          
+          // 1. Clear memory
+          appState = {}; 
+          
+          // 2. Wipe the local browser cache
+          localStorage.removeItem("hq_workout_state");
+          
+          // 3. Clear the input boxes on the login screen
+          document.getElementById("auth-username").value = "";
+          document.getElementById("auth-password").value = "";
+          document.getElementById("auth-error").textContent = "";
+          
+          // 4. Show the login screen again
           document.getElementById("auth-modal").classList.add("show");
         }
       });
@@ -2711,7 +2756,6 @@
       // STATE LOAD & SAVE
       // ============================================================
       async function loadState() {
-        // 🚨 CHANGED TO supabaseClient
         const {
           data: { session },
         } = await supabaseClient.auth.getSession();
@@ -2720,10 +2764,9 @@
           currentUser = session.user;
           document.getElementById("nav-signout").style.display = "flex";
           await loadFromSupabase();
-        } else if (isGuest) {
-          loadLocalState();
-          initAppAfterLoad();
         } else {
+          // Force login. No more guest mode.
+          // (Local data migration happens AFTER they sign up/in)
           document.getElementById("auth-modal").classList.add("show");
         }
       }
@@ -2742,7 +2785,6 @@
 
       async function loadFromSupabase() {
         try {
-          // 🚨 CHANGED TO supabaseClient
           const { data, error } = await supabaseClient
             .from("user_data")
             .select("app_state")
@@ -2762,7 +2804,7 @@
             localStorage.setItem("hq_workout_state", JSON.stringify(appState)); // Cache locally
             initAppAfterLoad();
           } else if (localData && localData.onboarded) {
-            // No cloud data, but user has local guest data
+            // No cloud data, but user has old local data! Trigger migration.
             appState = { ...appState, ...localData };
             document.getElementById("migrate-modal").classList.add("show");
           } else {
@@ -2792,7 +2834,6 @@
             if (!appState.reps[ex.id])
               appState.reps[ex.id] = Array(ex.sets).fill("");
 
-            // Snapshot baseline before UI builds
             if (!sessionBaseline[ex.id]) {
               sessionBaseline[ex.id] =
                 appState.variations[ex.id] || ex.progressions[0].name;
@@ -2822,7 +2863,6 @@
 
         // Sync to Cloud
         if (currentUser) {
-          // 🚨 CHANGED TO supabaseClient
           supabaseClient
             .from("user_data")
             .upsert({
@@ -2847,59 +2887,95 @@
         document.getElementById("auth-error").textContent = msg;
       }
 
-      async function handleEmailAuth(action) {
-        const email = document.getElementById("auth-email").value;
-        const password = document.getElementById("auth-password").value;
-        if (!email || !password)
-          return showAuthError("Email and password required.");
+      function togglePassword() {
+        const input = document.getElementById("auth-password");
+        input.type = input.type === "password" ? "text" : "password";
+      }
 
-        showAuthError("Checking...");
+      let pendingSignUp = null; // temporarily holds details for confirmation
+
+      async function handleAuth(action) {
+        const rawUsername = document.getElementById("auth-username").value.trim().toLowerCase();
+        const password = document.getElementById("auth-password").value;
+
+        if (!rawUsername || !password) return showAuthError("Username and password required.");
+        if (rawUsername.includes(" ")) return showAuthError("Username cannot contain spaces.");
+        if (password.length < 6) return showAuthError("Password must be at least 6 characters.");
+
+        const email = `${rawUsername}@calithex.local`;
+
+        if (action === "signup") {
+          // Show the warning overlay before actually creating the account
+          document.getElementById("confirm-username-display").textContent = rawUsername;
+          document.getElementById("confirm-password-display").textContent = password;
+          pendingSignUp = { email, password };
+          document.getElementById("signup-confirm-modal").classList.add("show");
+          return;
+        }
+
+        // If it's a sign in, execute immediately
+        executeAuthCall('signin', email, password);
+      }
+
+      async function executeSignUp() {
+        document.getElementById("signup-confirm-modal").classList.remove("show");
+        if (pendingSignUp) {
+          executeAuthCall('signup', pendingSignUp.email, pendingSignUp.password);
+          pendingSignUp = null;
+        }
+      }
+
+      async function executeAuthCall(action, email, password) {
+        const overlay = document.getElementById("transfer-overlay");
+        const msgEl = document.getElementById("transfer-msg");
+        const subEl = document.getElementById("transfer-sub");
+
+        showAuthError("");
+        msgEl.textContent = action === "signup" ? "Creating Account..." : "Authenticating...";
+        subEl.textContent = action === "signup" ? "Securing your vault" : "Verifying credentials";
+        overlay.classList.add("show");
+
         let error;
         if (action === "signup") {
-          // 🚨 CHANGED TO supabaseClient
           const res = await supabaseClient.auth.signUp({ email, password });
           error = res.error;
-          if (!error && res.data.user && !res.data.session) {
-            return showAuthError("Check your email for the confirmation link.");
+          if (error && error.message.includes("already registered")) {
+            error.message = "Username already taken. Try another or Sign In.";
           }
         } else {
-          // 🚨 CHANGED TO supabaseClient
-          const res = await supabaseClient.auth.signInWithPassword({
-            email,
-            password,
-          });
+          const res = await supabaseClient.auth.signInWithPassword({ email, password });
           error = res.error;
+          if (error && error.message.includes("Invalid login")) {
+            error.message = "Incorrect username or password.";
+          }
         }
 
         if (error) {
+          overlay.classList.remove("show");
           showAuthError(error.message);
         } else {
+          msgEl.textContent = "Access Granted.";
+          subEl.textContent = "Loading your programme...";
           document.getElementById("auth-modal").classList.remove("show");
           document.getElementById("auth-error").textContent = "";
-          loadState();
+          
+          await loadState();
+          
+          setTimeout(() => overlay.classList.remove("show"), 600);
         }
       }
 
-      async function handleMagicLink() {
-        const email = document.getElementById("auth-email").value;
-        if (!email) return showAuthError("Email required for magic link.");
-
-        showAuthError("Sending...");
-        // 🚨 CHANGED TO supabaseClient
-        const { error } = await supabaseClient.auth.signInWithOtp({ email });
-        if (error) showAuthError(error.message);
-        else showAuthError("✨ Magic link sent! Check your inbox.");
+      function openSignOutModal() {
+        document.getElementById("signout-modal").classList.add("show");
       }
 
-      function continueAsGuest() {
-        localStorage.setItem("hq_is_guest", "true");
-        isGuest = true;
-        document.getElementById("auth-modal").classList.remove("show");
-        loadState();
+      function closeSignOutModal() {
+        document.getElementById("signout-modal").classList.remove("show");
       }
 
-      async function handleSignOut() {
-        // 🚨 CHANGED TO supabaseClient
+      async function confirmSignOut() {
+        closeSignOutModal();
+        showToast("⏳", "Signing out securely...");
         await supabaseClient.auth.signOut();
       }
 
@@ -2916,8 +2992,20 @@
 
       function discardLocalData() {
         document.getElementById("migrate-modal").classList.remove("show");
-        localStorage.removeItem("hq_workout_state");
-        appState = {};
+        // Reset appState to empty. The saveState function will overwrite 
+        // the old local storage automatically when the app initializes.
+        appState = {
+          onboarded: false,
+          name: "",
+          split: "default",
+          date: "",
+          reps: {},
+          variations: {},
+          history: {},
+          sessionPRs: {},
+          completed: {},
+          personalRecords: {},
+        };
         initAppAfterLoad();
       }
 
@@ -3776,43 +3864,49 @@
           const file = e.target.files[0];
           if (!file) return;
 
-          const IMPORT_MSGS = [
-            ["Hold on tight...", "Reading backup file"],
-            ["Decrypting your gains...", "Parsing data"],
-            ["Restoring progression levels...", "Rebuilding variations"],
-            ["Reloading your history...", "Almost there"],
-            [`You're back.`, "Welcome home"],
-          ];
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            try {
+              const parsed = JSON.parse(ev.target.result);
+              if (!parsed.onboarded) throw new Error("Invalid backup file");
 
-          showTransferOverlay(IMPORT_MSGS, 500, () => {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-              try {
-                const parsed = JSON.parse(ev.target.result);
-                if (!parsed.onboarded) throw new Error("Invalid backup file");
+              // Data Age Check
+              const getLatestDate = (state) => Object.keys(state.history || {}).sort().pop() || "";
+              const currentLatest = getLatestDate(appState);
+              const importLatest = getLatestDate(parsed);
+
+              if (currentLatest && importLatest && currentLatest > importLatest) {
+                const proceed = confirm("⚠️ WARNING: The backup you are trying to import is OLDER than your current progress!\n\nIf you continue, you will lose your recent logs.\n\nAre you absolutely sure you want to overwrite your current data?");
+                if (!proceed) return; // User cancelled
+              } else {
+                const proceed = confirm("This will overwrite your current programme with the backup file. Continue?");
+                if (!proceed) return; // User cancelled
+              }
+
+              const IMPORT_MSGS =[
+                ["Hold on tight...", "Reading backup file"],
+                ["Decrypting your gains...", "Parsing data"],
+                ["Restoring progression levels...", "Rebuilding variations"],
+                ["Reloading your history...", "Almost there"],
+                [`You're back.`, "Welcome home"],
+              ];
+
+              showTransferOverlay(IMPORT_MSGS, 500, () => {
                 appState = { ...appState, ...parsed };
                 saveState();
-                document
-                  .getElementById("settings-modal")
-                  .classList.remove("show");
+                document.getElementById("settings-modal").classList.remove("show");
                 initUI();
-                showToast(
-                  "✅",
-                  `<strong>Welcome back, ${parsed.name || "Athlete"}.</strong><br>All your history, PRs and progression restored.`,
-                );
-              } catch (err) {
-                showToast(
-                  "❌",
-                  `<strong>Import failed.</strong><br>File doesn't look right. Use a valid backup.`,
-                );
-              }
-            };
-            reader.readAsText(file);
-          });
+                showToast("✅", `<strong>Welcome back, ${parsed.name || "Athlete"}.</strong><br>Data successfully restored and synced.`);
+              });
+            } catch (err) {
+              showToast("❌", `<strong>Import failed.</strong><br>File doesn't look right. Use a valid backup.`);
+            }
+          };
+          reader.readAsText(file);
         };
         input.click();
       }
-
+      
       function showTransferOverlay(messages, interval, onComplete) {
         const overlay = document.getElementById("transfer-overlay");
         const msgEl = document.getElementById("transfer-msg");
