@@ -2157,6 +2157,7 @@
         reps: {},
         variations: {},
         history: {},
+        sessionPRs: {},
         completed: {},
         personalRecords: {},
       };
@@ -2390,6 +2391,7 @@
           split: "default",
           date: "",
           reps: {},
+          sessionPRs: {},
           variations: {},
           history: {},
           completed: {},
@@ -2408,22 +2410,54 @@
       }
 
       function confirmResetToday() {
+        const todayStr = getLocalDateStr();
+
+        // Restore variations that were active at the start of the session
+        const sessionVariations = appState.completedVariations?.[todayStr];
+        if (sessionVariations) {
+          Object.assign(appState.variations, sessionVariations);
+          delete appState.completedVariations[todayStr];
+        }
+
+        // Roll back PRs set during this session
+        const sessionPRs = appState.sessionPRs?.[todayStr];
+        if (sessionPRs !== undefined) {
+          // sessionPRs holds the PRs that existed BEFORE this session
+          // So for each exercise in today's session, restore or delete
+          const today2 = getLocalTime().getDay();
+          const type2 = getSchedule()[today2].type;
+          if (type2 !== "rest") {
+            EXERCISES[type2].forEach((ex) => {
+              const varName =
+                (sessionVariations || appState.variations)[ex.id] ||
+                ex.progressions[0].name;
+              if (sessionPRs[varName]) {
+                // There was a pre-existing PR — restore it
+                appState.personalRecords[varName] = sessionPRs[varName];
+              } else {
+                // No PR existed before this session — delete it entirely
+                delete appState.personalRecords[varName];
+              }
+            });
+          }
+          delete appState.sessionPRs[todayStr];
+        }
+
         Object.values(EXERCISES)
           .flat()
           .forEach((ex) => {
             appState.reps[ex.id] = Array(ex.sets).fill("");
           });
-        delete appState.completed[getLocalDateStr()];
-        appState.history[getLocalDateStr()] = 0;
+        delete appState.completed[todayStr];
+        appState.history[todayStr] = 0;
         saveState();
         initUI();
         document.getElementById("reset-today-modal").classList.remove("show");
         showToast(
           "🔄",
-          `<strong>Log Reset</strong><br>Today's numbers cleared. Start fresh.`,
+          `<strong>Log Reset</strong><br>Today's numbers cleared. PRs rolled back.`,
         );
       }
-
       // ============================================================
       // FINISH WORKOUT
       // ============================================================
@@ -2493,6 +2527,8 @@
       }
 
       function confirmFinish() {
+        // Snapshot variations BEFORE applying upgrades
+        const preUpgradeVariations = { ...appState.variations };
         let upgradeCount = 0;
         pendingUpgrades.forEach((upg) => {
           const cb = document.getElementById(`upg-${upg.id}`);
@@ -2504,13 +2540,31 @@
 
         const todayStr = getLocalDateStr();
         appState.completed[todayStr] = true;
-        // Log PRs on confirm — safe because session is now final
+        appState.completedVariations = appState.completedVariations || {};
+        appState.completedVariations[todayStr] = preUpgradeVariations;
+
+        // Declare type2 BEFORE using it
         const today2 = getLocalTime().getDay();
         const type2 = getSchedule()[today2].type;
+
+        // Snapshot which PRs existed before this session (for reset rollback)
+        appState.sessionPRs = appState.sessionPRs || {};
+        appState.sessionPRs[todayStr] = {};
         if (type2 !== "rest") {
           EXERCISES[type2].forEach((ex) => {
             const varName =
-              appState.variations[ex.id] || ex.progressions[0].name;
+              preUpgradeVariations[ex.id] || ex.progressions[0].name;
+            const existing = appState.personalRecords?.[varName];
+            if (existing) appState.sessionPRs[todayStr][varName] = existing;
+          });
+        }
+
+        // Log PRs — safe because session is now final
+        const newPRs = [];
+        if (type2 !== "rest") {
+          EXERCISES[type2].forEach((ex) => {
+            const varName =
+              preUpgradeVariations[ex.id] || ex.progressions[0].name;
             if (!appState.personalRecords) appState.personalRecords = {};
             (appState.reps[ex.id] || []).forEach((v) => {
               const val = parseInt(v);
@@ -2522,11 +2576,15 @@
                     value: val,
                     unit: varType === "hold" ? "s" : "reps",
                   };
+                  newPRs.push(
+                    `${varName}: ${val}${varType === "hold" ? "s" : " reps"}`,
+                  );
                 }
               }
             });
           });
         }
+
         saveState();
         closeFinishModal();
         initUI();
@@ -2535,29 +2593,16 @@
         if (upgradeCount > 0)
           msg += `<br>🚀 ${upgradeCount} exercise${upgradeCount > 1 ? "s" : ""} levelled up for next session!`;
         showToast("🏆", msg);
-        // Announce any new PRs set this session
-        const prMessages = [];
-        if (type2 !== "rest") {
-          EXERCISES[type2].forEach((ex) => {
-            const varName =
-              appState.variations[ex.id] || ex.progressions[0].name;
-            const bestVal = best?.value ?? best;
-            const bestUnit = best?.unit ?? "reps";
-            const prevBest = Math.max(
-              ...(appState.reps[ex.id] || []).map((v) => parseInt(v) || 0),
-            );
-            if (prevBest === bestVal)
-              prMessages.push(`${varName}: ${bestVal}${bestUnit}`);
-          });
-        }
-        if (prMessages.length > 0) {
+
+        if (newPRs.length > 0) {
           setTimeout(() => {
             showToast(
               "<img src='best.png' style='width:24px;height:24px;'>",
-              `<strong>New PRs this session!</strong>...`,
+              `<strong>New PR${newPRs.length > 1 ? "s" : ""} this session!</strong><br>${newPRs.join("<br>")}`,
             );
           }, 2000);
         }
+
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
@@ -2724,8 +2769,13 @@
           row.id = `row-${ex.id}`;
 
           const colorVar = `var(--${ex.color})`;
+          const todayStr = getLocalDateStr();
+          const sessionVariations =
+            isDayComplete && appState.completedVariations?.[todayStr]
+              ? appState.completedVariations[todayStr]
+              : appState.variations;
           const currentName =
-            appState.variations[ex.id] || ex.progressions[0].name;
+            sessionVariations[ex.id] || ex.progressions[0].name;
           const slotInfo = SLOT_LABELS[ex.id];
 
           // Hit target = any single set >= 50 reps
