@@ -2887,6 +2887,7 @@
               ? existing
               : { total: existing || 0 }),
             type: type2,
+            split: appState.split,
           };
         }
 
@@ -3447,7 +3448,15 @@
             const d = new Date(today.getTime() - i * 86400000);
             const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
             const { total, type, filtered } = getHistoryTotal(dateStr);
-            const scheduledType = getScheduledType(d);
+            const histEntry = appState.history?.[dateStr];
+            const historicalSplit =
+              typeof histEntry === "object" && histEntry?.split
+                ? histEntry.split
+                : appState.split;
+            const scheduledType =
+              (historicalSplit === "6day" ? SCHEDULE_6DAY : SCHEDULE_DEFAULT)[
+                d.getDay()
+              ]?.type || "rest";
             const isPast = dateStr < todayStr;
             const isMissed =
               isPast && scheduledType !== "rest" && total === 0 && !filtered;
@@ -3469,7 +3478,15 @@
             const d = new Date(today.getTime() - i * 86400000);
             const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
             const { total, type, filtered } = getHistoryTotal(dateStr);
-            const scheduledType = getScheduledType(d);
+            const histEntry = appState.history?.[dateStr];
+            const historicalSplit =
+              typeof histEntry === "object" && histEntry?.split
+                ? histEntry.split
+                : appState.split;
+            const scheduledType =
+              (historicalSplit === "6day" ? SCHEDULE_6DAY : SCHEDULE_DEFAULT)[
+                d.getDay()
+              ]?.type || "rest";
             const isPast = dateStr < todayStr;
             const isMissed =
               isPast && scheduledType !== "rest" && total === 0 && !filtered;
@@ -3807,7 +3824,14 @@
             const d = new Date(today.getTime() - i * 86400000);
             const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
             if (dateStr < firstSessionDate) break; // don't count before app was started
-            const scheduledType = sched[d.getDay()]?.type;
+            const histEntry = appState.history?.[dateStr];
+            const historicalSplit =
+              typeof histEntry === "object" && histEntry?.split
+                ? histEntry.split
+                : appState.split;
+            const historicalSched =
+              historicalSplit === "6day" ? SCHEDULE_6DAY : SCHEDULE_DEFAULT;
+            const scheduledType = historicalSched[d.getDay()]?.type;
             if (scheduledType !== "rest" && !appState.completed?.[dateStr])
               missedSessions++;
           }
