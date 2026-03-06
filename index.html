@@ -4572,10 +4572,9 @@
           const threshold = varType === "hold" ? 60 : 50;
           const hitTarget = vals.some((v) => parseInt(v) >= threshold);
 
-          // 🚨 CLEANED UP LOGIC FOR READINESS HINTS 🚨
           const currentName = appState.variations[ex.id] || ex.progressions[0].name;
           const completedVariationName = appState.completedVariations?.[todayStr]?.[ex.id] || currentName;
-          const baseName = sessionBaseline[ex.id] || ex.progressions[0].name;
+          const baseName = appState.nfiBaselines?.[ex.id] || sessionBaseline[ex.id] || currentName;
 
           const currentIdx = ex.progressions.findIndex((p) => p.name === currentName);
           const completedIdx = ex.progressions.findIndex((p) => p.name === completedVariationName);
