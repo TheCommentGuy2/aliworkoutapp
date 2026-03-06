@@ -3085,67 +3085,7 @@
         </button>
       </div>
     </div>
-
-    <!-- SKIP WARNING MODAL -->
-    <div class="modal-overlay" id="skip-warning-modal">
-      <div class="modal-box" style="max-width: 440px">
-        <div style="font-size: 32px; text-align: center; margin-bottom: 12px">
-          ⚠️
-        </div>
-        <div class="modal-header" style="text-align: center">
-          Exercises Not Logged
-        </div>
-        <div class="modal-sub" style="text-align: center">
-          You logged <strong>0 reps</strong> for the following:
-        </div>
-        <div
-          id="skip-warning-list"
-          style="
-            margin: 16px 0;
-            padding: 12px 16px;
-            background: rgba(255, 77, 46, 0.06);
-            border: 1px solid rgba(255, 77, 46, 0.2);
-            border-radius: 10px;
-          "
-        ></div>
-        <div class="modal-sub" style="text-align: center; margin-bottom: 16px">
-          Did you skip these, or do you want to go back and log them?
-        </div>
-        <div style="display: flex; gap: 10px">
-          <button
-            class="g-btn"
-            style="flex: 1; padding: 12px; font-size: 13px"
-            onclick="
-              document
-                .getElementById('skip-warning-modal')
-                .classList.remove('show')
-            "
-          >
-            Go Back &amp; Log
-          </button>
-          <button
-            class="save-btn"
-            style="
-              flex: 1;
-              margin: 0;
-              background: rgba(255, 77, 46, 0.15);
-              color: var(--push);
-              border: 1px solid rgba(255, 77, 46, 0.3);
-            "
-            onclick="
-              document
-                .getElementById('skip-warning-modal')
-                .classList.remove('show');
-              skipWarningConfirmed = true;
-              confirmFinish();
-            "
-          >
-            Skip &amp; Lock Anyway
-          </button>
-        </div>
-      </div>
-    </div>
-
+    
     <!-- TRANSFER OVERLAY -->
     <div id="transfer-overlay" class="transfer-overlay">
       <div class="transfer-spinner"></div>
@@ -4353,32 +4293,10 @@
       }
 
       function confirmFinish() {
-        // ── Skipped exercise check ──────────────────────────────
-        const todayType = getSchedule()[getLocalTime().getDay()].type;
-        if (
-          !skipWarningConfirmed &&
-          todayType &&
-          todayType !== "rest" &&
-          EXERCISES[todayType]
-        ) {
-          const skipped = EXERCISES[todayType].filter((ex) => {
-            const reps = appState.reps?.[ex.id];
-            return !reps || reps.every((r) => !r || parseInt(r) === 0);
-          });
-          if (skipped.length > 0) {
-            document.getElementById("skip-warning-list").innerHTML = skipped
-              .map((e) => `<div class="skip-item">• ${e.label}</div>`)
-              .join("");
-            document.getElementById("skip-warning-modal").classList.add("show");
-            return;
-          }
-        }
-        skipWarningConfirmed = false; // reset for next session
-        
-        // Snapshot variations BEFORE applying upgrades (captures what was actually done today)
+        // Snapshot variations BEFORE applying upgrades
         const preUpgradeVariations = { ...appState.variations };
         
-        // 🚨 CRITICAL FIX: Restore NFI baselines so next session reverts to normal
+        // Restore NFI baselines so next session reverts to normal
         if (appState.nfiBaselines) {
           Object.keys(appState.nfiBaselines).forEach((exId) => {
             appState.variations[exId] = appState.nfiBaselines[exId];
@@ -4396,23 +4314,19 @@
         });
 
         const todayStr = getLocalDateStr();
-
-        // Declare FIRST before any usage
-        const today2 = getLocalTime().getDay();
-        const type2 = getSchedule()[today2].type;
+        const today = getLocalTime().getDay();
+        const type = getSchedule()[today].type;
 
         appState.completed[todayStr] = true;
         appState.completedVariations = appState.completedVariations || {};
         appState.completedVariations[todayStr] = preUpgradeVariations;
 
         // Lock session type into rich history entry
-        if (type2 !== "rest") {
+        if (type !== "rest") {
           const existing = appState.history?.[todayStr];
           appState.history[todayStr] = {
-            ...(typeof existing === "object"
-              ? existing
-              : { total: existing || 0 }),
-            type: type2,
+            ...(typeof existing === "object" ? existing : { total: existing || 0 }),
+            type: type,
             split: appState.split,
           };
         }
@@ -4420,10 +4334,9 @@
         // Snapshot which PRs existed before this session (for reset rollback)
         appState.sessionPRs = appState.sessionPRs || {};
         appState.sessionPRs[todayStr] = {};
-        if (type2 !== "rest") {
-          EXERCISES[type2].forEach((ex) => {
-            const varName =
-              preUpgradeVariations[ex.id] || ex.progressions[0].name;
+        if (type !== "rest") {
+          EXERCISES[type].forEach((ex) => {
+            const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
             const prevPR = appState.personalRecords?.[varName];
             if (prevPR) appState.sessionPRs[todayStr][varName] = prevPR;
           });
@@ -4431,12 +4344,11 @@
 
         // Log PRs — safe because session is now final
         const newPRs = [];
-        if (type2 !== "rest") {
-          EXERCISES[type2].forEach((ex) => {
-            const varName =
-              preUpgradeVariations[ex.id] || ex.progressions[0].name;
+        if (type !== "rest") {
+          EXERCISES[type].forEach((ex) => {
+            const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
             if (!appState.personalRecords) appState.personalRecords = {};
-            (appState.reps[ex.id] || []).forEach((v) => {
+            (appState.reps[ex.id] ||[]).forEach((v) => {
               const val = parseInt(v);
               if (!isNaN(val) && val > 0) {
                 const varType = (() => {
@@ -4449,9 +4361,7 @@
                     value: val,
                     unit: varType === "hold" ? "s" : "reps",
                   };
-                  newPRs.push(
-                    `${varName}: ${val}${varType === "hold" ? "s" : " reps"}`,
-                  );
+                  newPRs.push(`${varName}: ${val}${varType === "hold" ? "s" : " reps"}`);
                 }
               }
             });
@@ -4623,7 +4533,7 @@
         const entry = ex.progressions.find((p) => p.name === varName);
         return entry?.type || "reps";
       }
-      
+
       // ============================================================
       // EXERCISE LIST
       // ============================================================
