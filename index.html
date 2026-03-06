@@ -4221,8 +4221,15 @@
           if (appState.completedVariations)
             delete appState.completedVariations[todayStr];
         }
+        // Restore from persisted NFI baselines (survives login/initUI)
+        // then fall back to sessionBaseline for non-NFI changes
+        const nfi = appState.nfiBaselines || {};
+        Object.keys(nfi).forEach((exId) => {
+          appState.variations[exId] = nfi[exId];
+        });
+        appState.nfiBaselines = {};
         Object.keys(sessionBaseline).forEach((exId) => {
-          appState.variations[exId] = sessionBaseline[exId];
+          if (!nfi[exId]) appState.variations[exId] = sessionBaseline[exId];
         });
 
         // Now roll back PRs using the pre-rollback varNames
@@ -4367,8 +4374,18 @@
           }
         }
         skipWarningConfirmed = false; // reset for next session
-        // Snapshot variations BEFORE applying upgrades
+        
+        // Snapshot variations BEFORE applying upgrades (captures what was actually done today)
         const preUpgradeVariations = { ...appState.variations };
+        
+        // 🚨 CRITICAL FIX: Restore NFI baselines so next session reverts to normal
+        if (appState.nfiBaselines) {
+          Object.keys(appState.nfiBaselines).forEach((exId) => {
+            appState.variations[exId] = appState.nfiBaselines[exId];
+          });
+          appState.nfiBaselines = {}; // Clear them out
+        }
+        
         let upgradeCount = 0;
         pendingUpgrades.forEach((upg) => {
           const cb = document.getElementById(`upg-${upg.id}`);
@@ -4606,7 +4623,7 @@
         const entry = ex.progressions.find((p) => p.name === varName);
         return entry?.type || "reps";
       }
-
+      
       // ============================================================
       // EXERCISE LIST
       // ============================================================
@@ -4629,66 +4646,58 @@
             isDayComplete && appState.completedVariations?.[todayStr]
               ? appState.completedVariations[todayStr]
               : appState.variations;
-          const currentName =
-            sessionVariations[ex.id] || ex.progressions[0].name;
+          
           const slotInfo = SLOT_LABELS[ex.id];
-
-          const vals = appState.reps[ex.id] || [];
+          const vals = appState.reps[ex.id] ||[];
           const varType = getVarType(ex.id);
           const threshold = varType === "hold" ? 60 : 50;
           const hitTarget = vals.some((v) => parseInt(v) >= threshold);
 
-          const currentIdx = ex.progressions.findIndex(
-            (p) => p.name === currentName,
-          );
+          // 🚨 CLEANED UP LOGIC FOR READINESS HINTS 🚨
+          const currentName = appState.variations[ex.id] || ex.progressions[0].name;
+          const completedVariationName = appState.completedVariations?.[todayStr]?.[ex.id] || currentName;
+          const baseName = sessionBaseline[ex.id] || ex.progressions[0].name;
+
+          const currentIdx = ex.progressions.findIndex((p) => p.name === currentName);
+          const completedIdx = ex.progressions.findIndex((p) => p.name === completedVariationName);
+          const baseIdx = ex.progressions.findIndex((p) => p.name === baseName);
+
           const nextProg =
             currentIdx > -1 && currentIdx < ex.progressions.length - 1
               ? ex.progressions[currentIdx + 1]
               : null;
 
+          // We know it's an upgrade if they leveled up past the baseline today
+          const wasUpgraded = isDayComplete && completedIdx === baseIdx && currentIdx > completedIdx;
+          
+          // We know it's a downgrade if the variation they completed today is lower than the baseline
+          const wasDowngraded = isDayComplete && completedIdx < baseIdx;
+
           let setsHTML = "";
           for (let i = 0; i < ex.sets; i++) {
             const val = appState.reps[ex.id][i] || "";
-            const vt = getVarType(ex.id);
-            const thr = vt === "hold" ? 60 : 50;
+            const thr = varType === "hold" ? 60 : 50;
             const maxed = val !== "" && Number(val) >= thr ? "maxed" : "";
             setsHTML += `
         <div class="set-input-wrap">
           <div class="set-num">SET ${i + 1}</div>
           <input type="number" class="rep-input ${maxed}" id="inp-${ex.id}-${i}"
-            placeholder="${vt === "hold" ? "s" : "-"}"
+            placeholder="${varType === "hold" ? "s" : "-"}"
             ${isDayComplete ? "disabled" : ""}
             oninput="handleRepInput('${ex.id}',${i},'${ex.color}')"
             value="${val}">
         </div>`;
           }
 
-          const completedVariationName =
-            appState.completedVariations?.[todayStr]?.[ex.id] ||
-            ex.progressions[0].name;
-          const wasUpgraded =
-            isDayComplete &&
-            (appState.variations[ex.id] || ex.progressions[0].name) !==
-              completedVariationName;
-          const wasDowngraded =
-            isDayComplete &&
-            appState.completedVariations?.[todayStr] &&
-            ex.progressions.findIndex((p) => p.name === completedVariationName);
-          ex.progressions.findIndex(
-            (p) =>
-              p.name ===
-              (appState.variations[ex.id] || ex.progressions[0].name),
-          );
-
           let readinessHTML = `<div class="readiness-hint"></div>`;
           if (isDayComplete && hitTarget) {
             if (wasUpgraded) {
               readinessHTML = `<div class="readiness-hint visible" style="border-color:rgba(57,255,143,0.2);background:rgba(57,255,143,0.05)">
-                <strong>🚀 Levelled up — ${appState.variations[ex.id] || ex.progressions[0].name} awaits next session.</strong>
+                <strong>🚀 Levelled up — ${currentName} awaits next session.</strong>
               </div>`;
             } else if (wasDowngraded) {
               readinessHTML = `<div class="readiness-hint visible" style="border-color:rgba(255,209,102,0.2);background:rgba(255,209,102,0.05);color:var(--gold)">
-                <strong>💪 Strong session on a modified level.</strong> Return to ${sessionBaseline[ex.id] || ex.progressions[0].name} next session to chase the upgrade.
+                <strong>💪 Strong session on a modified level.</strong> Return to ${baseName} next session to chase the upgrade.
               </div>`;
             } else if (nextProg) {
               readinessHTML = `<div class="readiness-hint visible">
@@ -4701,14 +4710,8 @@
           // Level controls — only show on today's active block, session not complete
           let levelControlsHTML = "";
           if (isTodayBlock && !isDayComplete) {
-            const baseline = sessionBaseline[ex.id] || ex.progressions[0].name;
-            const baselineIdx = ex.progressions.findIndex(
-              (p) => p.name === baseline,
-            );
-            const isModified = currentName !== baseline;
-            const canDown = currentIdx > 0;
-            const canUp = isModified && currentIdx < baselineIdx;
-
+            const isModified = currentName !== baseName;
+            
             levelControlsHTML = `
         <div class="level-controls">
           ${
@@ -4716,7 +4719,7 @@
               ? `<button class="not-feeling-btn" onclick="openNotFeelingIt('${ex.id}')">
                 😮‍💨 Not Feeling It
                </button>`
-              : `<span class="level-tag modified">Today: ${currentName} <span style="color:var(--muted)">/ Base: ${baseline}</span></span>
+              : `<span class="level-tag modified">Today: ${currentName} <span style="color:var(--muted)">/ Base: ${baseName}</span></span>
                <button class="not-feeling-btn revert" onclick="revertToBaseline('${ex.id}')">
                  ↩ Revert
                </button>`
@@ -4724,16 +4727,20 @@
         </div>`;
           }
 
+          // Decide which name to show in the UI header
+          const displayVariationName = isDayComplete ? completedVariationName : currentName;
+          const displayVariationIdx = isDayComplete ? completedIdx : currentIdx;
+
           row.innerHTML = `
       <div class="ex-top">
         <div class="ex-info">
           <div class="ex-name-row">
             <span class="ex-category">${slotInfo.focus}</span>
           </div>
-          <div class="ex-name" id="ex-name-${ex.id}">${currentName}</div>
+          <div class="ex-name" id="ex-name-${ex.id}">${displayVariationName}</div>
           <div class="ex-variation-tag">
             <span>${slotInfo.label}</span>
-            ${currentIdx > 0 ? `<span style="color:var(--legs);border-color:rgba(57,255,143,0.2)">Level ${currentIdx + 1}</span>` : ""}
+            ${displayVariationIdx > 0 ? `<span style="color:var(--legs);border-color:rgba(57,255,143,0.2)">Level ${displayVariationIdx + 1}</span>` : ""}
           </div>
           ${levelControlsHTML}
           <div class="ex-note">${ex.note}</div>
@@ -5478,12 +5485,20 @@
           .find((e) => e.id === exId);
 
         // Lock in the real baseline BEFORE overwriting variations
-        if (!sessionBaseline[exId]) {
-          sessionBaseline[exId] =
-            appState.variations[exId] || ex.progressions[0].name;
-        }
-        // Force-protect it from being overwritten by any subsequent initUI snapshot
-        const trueBaseline = sessionBaseline[exId];
+  if (!sessionBaseline[exId]) {
+    sessionBaseline[exId] = appState.variations[exId] || ex.progressions[0].name;
+  }
+  const trueBaseline = sessionBaseline[exId];
+
+  // Persist true baseline so confirmResetToday can restore it
+  // even if sessionBaseline gets clobbered by a login/initUI cycle
+  appState.nfiBaselines = appState.nfiBaselines || {};
+  appState.nfiBaselines[exId] = trueBaseline;
+
+  appState.reps[exId] = Array(ex.sets).fill("");
+  appState.variations[exId] = targetName;
+
+  sessionBaseline[exId] = trueBaseline;
 
         appState.reps[exId] = Array(ex.sets).fill("");
         appState.variations[exId] = targetName;
@@ -5517,6 +5532,8 @@
         const baseline = sessionBaseline[exId] || ex.progressions[0].name;
         appState.reps[exId] = Array(ex.sets).fill("");
         appState.variations[exId] = baseline;
+        if (appState.nfiBaselines) delete appState.nfiBaselines[exId];
+
 
         saveState();
 
