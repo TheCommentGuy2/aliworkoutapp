@@ -3453,14 +3453,17 @@
             }
           }
         } else if (event === "SIGNED_OUT") {
+          // 1. Tell the app there is no user
           currentUser = null;
-          document.getElementById("nav-signout").style.display = "none";
-          appState = {};
+          
+          // 2. Wipe the local browser cache completely
           localStorage.removeItem("hq_workout_state");
-          document.getElementById("auth-username").value = "";
-          document.getElementById("auth-password").value = "";
-          document.getElementById("auth-error").textContent = "";
-          document.getElementById("auth-modal").classList.add("show");
+          localStorage.removeItem("hq_is_guest");
+          
+          // 3. Hard reload the page. 
+          // This guarantees absolutely NO ghost DOM elements (like old charts, names, or stats) 
+          // are left in the background. The app will restart, see no user, and show a pristine login screen.
+          window.location.reload();
         }
       });
 
@@ -3804,6 +3807,7 @@
       let pendingNewPassword = "";
 
       function openChangePasswordModal() {
+        // Close settings first so they don't overlap
         document.getElementById("settings-modal").classList.remove("show");
         document.getElementById("new-password-input").value = "";
         document.getElementById("change-password-modal").classList.add("show");
