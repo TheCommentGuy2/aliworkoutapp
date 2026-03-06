@@ -1908,6 +1908,45 @@
             📂 Import Backup
           </button>
         </div>
+        <!-- IMPORT/EXPORT BUTTONS (Keep as is) -->
+        <div
+          style="
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+          "
+        >
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px; font-size: 12px"
+            onclick="exportData()"
+          >
+            💾 Export Backup
+          </button>
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px; font-size: 12px"
+            onclick="importData()"
+          >
+            📂 Import Backup
+          </button>
+        </div>
+
+        <!-- CHANGE PASSWORD SECTION -->
+        <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
+           <button
+            class="g-btn"
+            style="width: 100%; padding: 12px; border-color: var(--muted); color: var(--text);"
+            onclick="openChangePasswordModal()"
+          >
+            🔐 Change Password
+          </button>
+        </div>
+
+        <!-- FACTORY RESET BUTTON -->
+        <!-- Added margin-top: 12px here 👇 -->
         <div style="margin-top: 12px">
           <button
             onclick="forceReset()"
@@ -2240,6 +2279,29 @@
       </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- CHANGE PASSWORD MODAL                                        -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="change-password-modal">
+      <div class="modal-box" style="max-width: 360px; text-align: center">
+        <div class="modal-header">New Password</div>
+        <div class="modal-sub">Enter your new secure password below.</div>
+        
+        <div class="form-group" style="text-align: left; margin-top: 20px; position: relative;">
+          <input type="password" id="new-password-input" class="form-control" placeholder="Min 6 characters" style="padding-right: 40px;" />
+           <button type="button" onclick="toggleNewPasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; display: flex; align-items: center; opacity: 0.6;">
+            <img id="new-eye-icon" src="eye1.png" style="width: 20px; height: 20px;" />
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px">
+          <button class="g-btn" style="flex: 1; padding: 12px" onclick="document.getElementById('change-password-modal').classList.remove('show')">Cancel</button>
+          <button class="save-btn" style="flex: 1; margin: 0; background: var(--text); color: var(--bg);" onclick="executePasswordChange()">Update</button>
+        </div>
+      </div>
+    </div>
+    
+
     <!-- LEVEL CHANGE MODAL -->
     <div class="modal-overlay" id="level-modal">
       <div class="modal-box" style="max-width: 420px">
@@ -2271,9 +2333,9 @@
       <div class="modal-box" style="max-width: 400px; text-align: center">
         <div class="modal-header">Welcome to Calithex</div>
         <div class="modal-sub">
-          Create a unique username or log back in to sync your progress.
+          Create a unique username to sync your progress.
           <br /><br />
-          <strong style="color: var(--push)">⚠️ WARNING:</strong> If you forget your password, there is NO WAY to recover your account. Write it down, or ensure you regularly export your backup data manually.
+          <strong style="color: var(--push)">⚠️ WARNING:</strong> If you forget your password, you cannot sign in. You can only change your password while you are logged in.
         </div>
 
         <div class="form-group" style="text-align: left">
@@ -2282,8 +2344,10 @@
             id="auth-username"
             class="form-control"
             placeholder="Username (no spaces)"
+            oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9._-]/g, '')"
           />
         </div>
+
         <div class="form-group" style="text-align: left; margin-bottom: 10px; position: relative;">
           <input
             type="password"
@@ -2418,7 +2482,6 @@
         </div>
       </div>
     </div>
-
     <!-- ============================================================ -->
     <!-- SIGN UP CONFIRMATION MODAL                                   -->
     <!-- ============================================================ -->
@@ -2426,7 +2489,7 @@
       <div class="modal-box" style="max-width: 400px; text-align: center">
         <div class="modal-header">Save Your Vault Key</div>
         <div class="modal-sub">
-          There is <strong style="color: var(--push)">NO password reset</strong>. If you lose these, your account is gone forever. Write them down right now.
+          If you lose these, <strong style="color: var(--push)">you cannot sign in</strong>. Store them somewhere safe.
         </div>
         
         <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 20px; text-align: left;">
@@ -2874,26 +2937,34 @@
           const localSaved = localStorage.getItem("hq_workout_state");
           const localData = localSaved ? JSON.parse(localSaved) : null;
 
-          if (
-            data &&
-            data.app_state &&
-            Object.keys(data.app_state).length > 0
-          ) {
+          if (data && data.app_state && Object.keys(data.app_state).length > 0) {
             // Cloud Data Exists
             appState = { ...appState, ...data.app_state };
-            localStorage.setItem("hq_workout_state", JSON.stringify(appState)); // Cache locally
+            localStorage.setItem("hq_workout_state", JSON.stringify(appState));
             initAppAfterLoad();
           } else if (localData && localData.onboarded) {
             // No cloud data, but user has old local data! Trigger migration.
             appState = { ...appState, ...localData };
             document.getElementById("migrate-modal").classList.add("show");
           } else {
-            // New user, completely blank
+            // 🚨 BUG FIX: Initialize empty state for new user so initAppAfterLoad doesn't crash
+            appState = {
+              onboarded: false,
+              name: "",
+              split: "default",
+              date: "",
+              reps: {},
+              variations: {},
+              history: {},
+              sessionPRs: {},
+              completed: {},
+              personalRecords: {},
+            };
             initAppAfterLoad();
           }
         } catch (error) {
           console.error("Cloud load error:", error);
-          loadLocalState(); // Fallback
+          loadLocalState();
           initAppAfterLoad();
         }
       }
@@ -2983,17 +3054,31 @@
       let pendingSignUp = null; // temporarily holds details for confirmation
 
       async function handleAuth(action) {
+        // 1. Get and clean inputs
         const rawUsername = document.getElementById("auth-username").value.trim().toLowerCase();
         const password = document.getElementById("auth-password").value;
 
+        // 2. Basic Validation
         if (!rawUsername || !password) return showAuthError("Username and password required.");
-        if (rawUsername.includes(" ")) return showAuthError("Username cannot contain spaces.");
         if (password.length < 6) return showAuthError("Password must be at least 6 characters.");
 
         const email = `${rawUsername}@calithex.local`;
 
         if (action === "signup") {
-          // Show the warning overlay before actually creating the account
+          showAuthError("Checking availability...");
+          
+          const { data: isTaken, error } = await supabaseClient.rpc('check_if_user_exists', { 
+            email_check: email 
+          });
+
+          if (error) {
+            console.error("RPC Error:", error);
+          } else if (isTaken) {
+            showAuthError("Username already taken. Try another or Sign In.");
+            return;
+          }
+
+          showAuthError(""); // Clear "Checking..." text
           document.getElementById("confirm-username-display").textContent = rawUsername;
           document.getElementById("confirm-password-display").textContent = password;
           pendingSignUp = { email, password };
@@ -3001,7 +3086,6 @@
           return;
         }
 
-        // If it's a sign in, execute immediately
         executeAuthCall('signin', email, password);
       }
 
@@ -3095,6 +3179,51 @@
           personalRecords: {},
         };
         initAppAfterLoad();
+      }
+
+      // ============================================================
+      // PASSWORD CHANGE LOGIC
+      // ============================================================
+      function openChangePasswordModal() {
+        // Close settings first so they don't overlap
+        document.getElementById("settings-modal").classList.remove("show");
+        document.getElementById("new-password-input").value = "";
+        document.getElementById("change-password-modal").classList.add("show");
+      }
+
+      function toggleNewPasswordVisibility() {
+        const input = document.getElementById("new-password-input");
+        const icon = document.getElementById("new-eye-icon");
+        if (input.type === "password") {
+          input.type = "text";
+          icon.src = "eye2.png";
+        } else {
+          input.type = "password";
+          icon.src = "eye1.png";
+        }
+      }
+
+      async function executePasswordChange() {
+        const newPass = document.getElementById("new-password-input").value;
+        if (newPass.length < 6) {
+          showToast("❌", "Password must be at least 6 characters.");
+          return;
+        }
+
+        document.getElementById("change-password-modal").classList.remove("show");
+        showToast("⏳", "Updating password...");
+
+        const { data, error } = await supabaseClient.auth.updateUser({
+          password: newPass
+        });
+
+        if (error) {
+          showToast("❌", "Error: " + error.message);
+          // Re-open if it failed so they can try again
+          setTimeout(() => document.getElementById("change-password-modal").classList.add("show"), 500);
+        } else {
+          showToast("✅", "Password updated successfully.");
+        }
       }
 
       // ============================================================
