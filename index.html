@@ -1487,10 +1487,158 @@
         letter-spacing: 1px;
         text-transform: uppercase;
       }
+
+      /* TACTICAL ANALYSIS */
+.tactical-section {
+  margin-top: 16px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+.tactical-header {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tactical-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+@media (max-width: 520px) {
+  .tactical-grid { grid-template-columns: 1fr; }
+}
+.tac-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.tac-card-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.ratio-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 2px;
+}
+.ratio-fill-push {
+  height: 100%;
+  background: var(--push);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.ratio-fill-pull {
+  height: 100%;
+  background: var(--pull);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.ratio-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--dim);
+}
+.ratio-labels span:first-child { color: var(--push); }
+.ratio-labels span:last-child  { color: var(--pull); }
+.plateau-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.plateau-item {
+  font-size: 12px;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.3;
+}
+.plateau-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--gold);
+}
+.tac-briefing {
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid transparent;
+}
+.tac-briefing.priority-safety {
+  background: rgba(255,77,46,0.07);
+  border-color: rgba(255,77,46,0.2);
+}
+.tac-briefing.priority-plateau {
+  background: rgba(255,209,102,0.07);
+  border-color: rgba(255,209,102,0.2);
+}
+.tac-briefing.priority-levelup {
+  background: rgba(57,255,143,0.07);
+  border-color: rgba(57,255,143,0.2);
+}
+.tac-briefing.priority-good {
+  background: rgba(57,255,143,0.05);
+  border-color: rgba(57,255,143,0.12);
+}
+.tac-briefing-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.tac-briefing-text { color: var(--text); font-size: 13px; line-height: 1.55; }
+.tac-briefing-text strong { color: var(--gold); }
+
+/* MISSED SESSIONS MODAL */
+.missed-session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 16px 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.missed-session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,77,46,0.06);
+  border: 1px solid rgba(255,77,46,0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.missed-session-type {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--push);
+}
+.missed-session-date {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
     </style>
   </head>
   <body>
-    <!-- TOP NAV -->
     <!-- TOP NAV -->
     <div class="top-nav">
       <button
@@ -1699,6 +1847,34 @@
         </div>
 
         <div id="coaching-widget"></div>
+      </div>
+
+      <!-- TACTICAL ANALYSIS -->
+      <div class="tactical-section" id="tactical-section">
+        <div class="tactical-header">
+          <span>Tactical Analysis</span>
+          <span style="color:var(--dim);font-size:10px">Last 30 days</span>
+        </div>
+        <div class="tactical-grid">
+          <div class="tac-card">
+            <div class="tac-card-label">Push : Pull Balance</div>
+            <div class="ratio-track">
+              <div class="ratio-fill-push" id="tac-push-bar" style="width:50%"></div>
+              <div class="ratio-fill-pull" id="tac-pull-bar" style="width:50%"></div>
+            </div>
+            <div class="ratio-labels">
+              <span id="tac-push-label">Push —</span>
+              <span id="tac-pull-label">Pull —</span>
+            </div>
+          </div>
+          <div class="tac-card">
+            <div class="tac-card-label">Plateau Watch</div>
+            <div class="plateau-list" id="tac-plateau-list">
+              <div class="plateau-item" style="color:var(--muted)">Not enough data yet</div>
+            </div>
+          </div>
+        </div>
+        <div id="tac-briefing-container"></div>
       </div>
 
       <!-- PUSH BLOCK -->
@@ -2841,6 +3017,24 @@
       </div>
     </div>
 
+    <!-- MISSED SESSIONS MODAL -->
+<div class="modal-overlay" id="missed-modal">
+  <div class="modal-box" style="max-width:440px">
+    <div style="font-size:32px;text-align:center;margin-bottom:12px">📋</div>
+    <div class="modal-header" style="text-align:center">Missed Sessions</div>
+    <div class="modal-sub" style="text-align:center">
+      The following scheduled sessions weren't logged since your last workout.
+    </div>
+    <div class="missed-session-list" id="missed-session-list"></div>
+    <div class="modal-sub" style="text-align:center;margin-bottom:16px;font-size:12px;color:var(--muted)">
+      These have been marked as missed in your history.
+    </div>
+    <button class="save-btn" style="width:100%;margin:0" onclick="acknowledgeMissed()">
+      OK, Got It
+    </button>
+  </div>
+</div>
+
     <!-- TRANSFER OVERLAY -->
     <div id="transfer-overlay" class="transfer-overlay">
       <div class="transfer-spinner"></div>
@@ -3175,6 +3369,7 @@
         completed: {},
         personalRecords: {},
         completedVariations: {},
+        lastMissedAcknowledged: "",
       };
 
       let sessionBaseline = {};
@@ -3300,6 +3495,7 @@
               completed: {},
               personalRecords: {},
               completedVariations: {},
+              lastMissedAcknowledged: "",
             };
             initAppAfterLoad();
             document.getElementById("auth-modal").classList.remove("show");
@@ -3371,6 +3567,7 @@
         if (!skipRender) {
           renderGraph();
           renderStats();
+          renderTacticalAnalysis();
         }
       }
 
@@ -3394,7 +3591,8 @@
         }
       }
 
-      let pendingSignUp = null; // temporarily holds details for confirmation
+      let pendingSignUp = null;
+      let skipWarningConfirmed = false; // temporarily holds details for confirmation
 
       async function handleAuth(action) {
         // 1. Get and clean inputs
@@ -3541,31 +3739,12 @@
           sessionPRs: {},
           completed: {},
           personalRecords: {},
+          completedVariations: {},
+          lastMissedAcknowledged: "",
         };
         initAppAfterLoad();
       }
 
-      // ============================================================
-      // PASSWORD CHANGE LOGIC
-      // ============================================================
-      function openChangePasswordModal() {
-        // Close settings first so they don't overlap
-        document.getElementById("settings-modal").classList.remove("show");
-        document.getElementById("new-password-input").value = "";
-        document.getElementById("change-password-modal").classList.add("show");
-      }
-
-      function toggleNewPasswordVisibility() {
-        const input = document.getElementById("new-password-input");
-        const icon = document.getElementById("new-eye-icon");
-        if (input.type === "password") {
-          input.type = "text";
-          icon.src = "eye2.png";
-        } else {
-          input.type = "password";
-          icon.src = "eye1.png";
-        }
-      }
 
       // ============================================================
       // PASSWORD CHANGE LOGIC
@@ -3859,6 +4038,7 @@
           completed: {},
           personalRecords: {},
           completedVariations: {},
+          lastMissedAcknowledged: "",
         };
 
         sessionBaseline = {};
@@ -3928,7 +4108,8 @@
         // Now roll back variations
         if (sessionVariations) {
           Object.assign(appState.variations, sessionVariations);
-          if (appState.completedVariations) delete appState.completedVariations[todayStr];
+          if (appState.completedVariations)
+            delete appState.completedVariations[todayStr];
         }
         Object.keys(sessionBaseline).forEach((exId) => {
           appState.variations[exId] = sessionBaseline[exId];
@@ -4055,6 +4236,27 @@
       }
 
       function confirmFinish() {
+        // ── Skipped exercise check ──────────────────────────────
+        const todayType = getSchedule()[getLocalTime().getDay()].type;
+        if (
+          !skipWarningConfirmed &&
+          todayType &&
+          todayType !== "rest" &&
+          EXERCISES[todayType]
+        ) {
+          const skipped = EXERCISES[todayType].filter((ex) => {
+            const reps = appState.reps?.[ex.id];
+            return !reps || reps.every((r) => !r || parseInt(r) === 0);
+          });
+          if (skipped.length > 0) {
+            document.getElementById("skip-warning-list").innerHTML = skipped
+              .map((e) => `<div class="skip-item">• ${e.label}</div>`)
+              .join("");
+            document.getElementById("skip-warning-modal").classList.add("show");
+            return;
+          }
+        }
+        skipWarningConfirmed = false; // reset for next session
         // Snapshot variations BEFORE applying upgrades
         const preUpgradeVariations = { ...appState.variations };
         let upgradeCount = 0;
@@ -5190,7 +5392,7 @@
         updateDailyVolume();
         openBlock(type);
         sessionBaseline[exId] = trueBaseline;
-        
+
         showToast(
           "😮‍💨",
           `<strong>Modified for today.</strong><br>Now on: ${targetName}`,
@@ -5222,6 +5424,121 @@
       function closeLevelModal() {
         document.getElementById("level-modal").classList.remove("show");
       }
+
+      // ============================================================
+// TACTICAL ANALYSIS
+// ============================================================
+function renderTacticalAnalysis() {
+  const hist = appState.history || {};
+  const today = getLocalTime();
+
+  // ── Push:Pull ratio (last 30 days) ────────────────────────
+  let pushVol = 0, pullVol = 0;
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(today.getTime() - i * 86400000);
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const entry = hist[ds];
+    if (!entry || typeof entry !== 'object') continue;
+    if (entry.type === 'push') pushVol += entry.total || 0;
+    if (entry.type === 'pull') pullVol += entry.total || 0;
+  }
+  const totalPP = pushVol + pullVol;
+  const pushPct = totalPP > 0 ? Math.round((pushVol / totalPP) * 100) : 50;
+  const ratio = pullVol > 0 ? (pushVol / pullVol) : null;
+
+  const pushBar = document.getElementById('tac-push-bar');
+  const pullBar = document.getElementById('tac-pull-bar');
+  if (pushBar) {
+    pushBar.style.width = pushPct + '%';
+    pushBar.style.background = ratio !== null && ratio > 1.5
+      ? 'var(--push)' : ratio !== null && ratio > 1.15
+      ? 'var(--gold)' : 'var(--legs)';
+  }
+  if (pullBar) pullBar.style.width = (100 - pushPct) + '%';
+  const pushLbl = document.getElementById('tac-push-label');
+  const pullLbl = document.getElementById('tac-pull-label');
+  if (pushLbl) pushLbl.textContent = `Push ${pushVol}`;
+  if (pullLbl) pullLbl.textContent = `Pull ${pullVol}`;
+
+  // ── Plateau detection ─────────────────────────────────────
+  const sortedDates = Object.keys(hist).sort().reverse();
+  const sessionsByType = { push: [], pull: [], legs: [] };
+  for (const ds of sortedDates) {
+    const entry = hist[ds];
+    if (!entry || typeof entry !== 'object' || !entry.exercises || !entry.type) continue;
+    const t = entry.type;
+    if (!sessionsByType[t] || sessionsByType[t].length >= 6) continue;
+    sessionsByType[t].push(entry.exercises);
+  }
+  const plateaus = [];
+  for (const [, sessions] of Object.entries(sessionsByType)) {
+    if (sessions.length < 3) continue;
+    const allIds = new Set(sessions.flatMap(s => Object.keys(s)));
+    for (const exId of allIds) {
+      const repCounts = sessions
+        .map(s => s[exId] ? s[exId].sets.reduce((a, r) => a + r, 0) : null)
+        .filter(v => v !== null);
+      if (repCounts.length < 3) continue;
+      const recent3 = repCounts.slice(0, 3);
+      const max3 = Math.max(...recent3);
+      const min3 = Math.min(...recent3);
+      const improvement = min3 > 0 ? ((max3 - min3) / min3) * 100 : 0;
+      if (improvement < 5 && max3 > 0) {
+        const exData = Object.values(EXERCISES).flat().find(e => e.id === exId);
+        if (exData) plateaus.push({ name: exData.label, reps: recent3[0] });
+      }
+    }
+  }
+  const plateauEl = document.getElementById('tac-plateau-list');
+  if (plateauEl) {
+    plateauEl.innerHTML = plateaus.length === 0
+      ? `<div class="plateau-item" style="color:var(--legs)"><span class="plateau-dot" style="background:var(--legs)"></span>No stagnation detected.</div>`
+      : plateaus.slice(0, 3).map(p =>
+          `<div class="plateau-item"><span class="plateau-dot"></span>${p.name}: ~${p.reps} reps flat</div>`
+        ).join('');
+  }
+
+  // ── Level-up proximity (from personalRecords) ─────────────
+  let levelUpTarget = null;
+  Object.values(EXERCISES).flat().forEach(ex => {
+    const varName = appState.variations[ex.id] || ex.progressions[0].name;
+    const pr = appState.personalRecords?.[varName]?.value || 0;
+    const baselineIdx = ex.progressions.findIndex(p => p.name === varName);
+    const hasNext = baselineIdx > -1 && baselineIdx < ex.progressions.length - 1;
+    if (pr >= 40 && pr < 50 && hasNext) {
+      if (!levelUpTarget || pr > levelUpTarget.reps) {
+        levelUpTarget = { name: varName, reps: pr, gap: 50 - pr };
+      }
+    }
+  });
+
+  // ── Priority briefing ─────────────────────────────────────
+  const briefEl = document.getElementById('tac-briefing-container');
+  if (!briefEl) return;
+
+  let cls = 'priority-good', icon = '✅', body = '';
+  if (ratio !== null && ratio > 1.5 && totalPP > 0) {
+    cls = 'priority-safety'; icon = '⚠️';
+    body = `<strong style="color:var(--push)">Imbalance Detected:</strong> You're doing <strong>${ratio.toFixed(1)}×</strong> more Push than Pull over 30 days. Prioritise Pull sessions to protect your shoulders.`;
+  } else if (plateaus.length > 0) {
+    cls = 'priority-plateau'; icon = '📉';
+    body = `<strong style="color:var(--gold)">Stagnation — ${plateaus[0].name}:</strong> No rep improvement in 3 sessions. Try an extra set or slower eccentric tempo.`;
+  } else if (levelUpTarget) {
+    cls = 'priority-levelup'; icon = '🚀';
+    body = `<strong style="color:var(--legs)">Mission Critical — ${levelUpTarget.name}:</strong> Your best is ${levelUpTarget.reps} reps. Only <strong>${levelUpTarget.gap}</strong> away from unlocking the next level.`;
+  } else if (totalPP === 0) {
+    cls = 'priority-good'; icon = '';
+    body = `<span style="color:var(--muted)">Complete a few sessions to unlock analysis.</span>`;
+  } else {
+    body = `<strong style="color:var(--legs)">All clear.</strong> No imbalances or plateaus detected. Keep logging.`;
+  }
+
+  briefEl.innerHTML = `
+    <div class="tac-briefing ${cls}">
+      <span class="tac-briefing-icon">${icon}</span>
+      <div class="tac-briefing-text">${body}</div>
+    </div>`;
+}
 
       function renderStats() {
         const container = document.getElementById("stats-section");
@@ -5444,12 +5761,14 @@
         setTimeout(() => {
           renderGraph();
           renderStats();
+          renderTacticalAnalysis();
         }, 100);
 
         const today = getLocalTime().getDay();
         const sess = getSchedule()[today];
         const isComplete = !!appState.completed[todayStr];
 
+        checkMissedSessions();
         setTimeout(() => {
           if (isComplete) {
             showToast(
@@ -5473,6 +5792,69 @@
           }
         }, 1000);
       }
+
+      // ============================================================
+// MISSED SESSION DETECTION
+// ============================================================
+function checkMissedSessions() {
+  if (!appState.onboarded || Object.keys(appState.completed || {}).length === 0) return;
+
+  const today = getLocalTime();
+  const todayStr = getLocalDateStr();
+  const lastAck = appState.lastMissedAcknowledged || "";
+  const SCAN_LIMIT = 90;
+  const missed = [];
+
+  for (let i = 1; i <= SCAN_LIMIT; i++) {
+    const d = new Date(today.getTime() - i * 86400000);
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+    // Stop if we've reached the last acknowledged date
+    if (ds <= lastAck) break;
+
+    // Stop if we hit a completed session — that's the anchor
+    if (appState.completed?.[ds]) break;
+
+    // Check what was scheduled that day
+    const histEntry = appState.history?.[ds];
+    const splitUsed = typeof histEntry === 'object' && histEntry?.split
+      ? histEntry.split : appState.split;
+    const sched = splitUsed === '6day' ? SCHEDULE_6DAY : SCHEDULE_DEFAULT;
+    const scheduledType = sched[d.getDay()]?.type;
+
+    if (!scheduledType || scheduledType === 'rest') continue;
+
+    // Only flag if it's before today (can't miss today yet)
+    if (ds < todayStr) {
+      const label = scheduledType.charAt(0).toUpperCase() + scheduledType.slice(1);
+      const dayName = DAYS[d.getDay()];
+      const dateFormatted = `${d.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]} ${d.getFullYear()}`;
+      missed.push({ type: label, day: dayName, date: dateFormatted, ds });
+    }
+  }
+
+  if (missed.length === 0) return;
+
+  // Newest first already since we scanned forward from yesterday
+  const listEl = document.getElementById('missed-session-list');
+  if (listEl) {
+    listEl.innerHTML = missed.reverse().map(m => `
+      <div class="missed-session-item">
+        <span class="missed-session-type">${m.type} Day</span>
+        <span class="missed-session-date">${m.day}, ${m.date}</span>
+      </div>`).join('');
+  }
+
+  document.getElementById('missed-modal').classList.add('show');
+}
+
+function acknowledgeMissed() {
+  // Store yesterday's date as last acknowledged so we don't re-show same misses
+  const yesterday = new Date(getLocalTime().getTime() - 86400000);
+  appState.lastMissedAcknowledged = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+  saveState(true);
+  document.getElementById('missed-modal').classList.remove('show');
+}
 
       function initClocks() {
         setInterval(() => {
