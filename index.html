@@ -4279,7 +4279,10 @@
         if (pendingUpgrades.length > 0) {
           sub.innerHTML = `${warningHTML}
             <strong>💪 You maxed out ${pendingUpgrades.length} exercise${pendingUpgrades.length > 1 ? "s" : ""}!</strong><br>
-            Check the ones you want to level up next session.
+            <div style="margin-top: 8px; margin-bottom: 12px; font-size: 13px; color: var(--dim); line-height: 1.5;">
+              Keep checked to <strong>automatically advance</strong> to the next variation next session.<br>
+              Uncheck to stay on your current level and perfect your form.
+            </div>
             <div class="upgrade-list">${upgradeHTML}</div>`;
         } else {
           sub.innerHTML = `${warningHTML}
@@ -5448,16 +5451,35 @@
 
         // ── Level-up proximity (from personalRecords) ─────────────
         let levelUpTargets =[];
+        let seenExNames = new Set(); // Prevent duplicate entries like "Plank" showing up twice
+
         Object.values(EXERCISES)
           .flat()
           .forEach((ex) => {
             const varName = appState.variations[ex.id] || ex.progressions[0].name;
+            
+            // Skip if we already tracked this exact variation
+            if (seenExNames.has(varName)) return;
+
             const pr = appState.personalRecords?.[varName]?.value || 0;
             const baselineIdx = ex.progressions.findIndex((p) => p.name === varName);
             const hasNext = baselineIdx > -1 && baselineIdx < ex.progressions.length - 1;
             
-            if (pr >= 40 && pr < 50 && hasNext) {
-              levelUpTargets.push({ name: varName, reps: pr, gap: 50 - pr });
+            // Figure out if it's a rep or a hold to set the correct math
+            const entry = ex.progressions[baselineIdx];
+            const varType = entry?.type || "reps";
+            const maxTarget = varType === "hold" ? 60 : 50;
+            const minTarget = varType === "hold" ? 50 : 40; // Tracking range: 50-59s or 40-49 reps
+            const unit = varType === "hold" ? "s" : " reps";
+
+            if (pr >= minTarget && pr < maxTarget && hasNext) {
+              levelUpTargets.push({ 
+                name: varName, 
+                reps: pr, 
+                gap: maxTarget - pr,
+                unit: unit
+              });
+              seenExNames.add(varName);
             }
           });
 
@@ -5486,10 +5508,10 @@
           
           if (levelUpTargets.length === 1) {
             const t = levelUpTargets[0];
-            body = `<strong style="color:var(--legs)">Mission Critical — ${t.name}:</strong> Your best is ${t.reps} reps. Only <strong>${t.gap}</strong> away from unlocking the next level.`;
+            body = `<strong style="color:var(--legs)">Mission Critical — ${t.name}:</strong> Your best is ${t.reps}${t.unit}. Only <strong>${t.gap}${t.unit}</strong> away from unlocking the next level.`;
           } else {
-            const listStr = levelUpTargets.map(t => `${t.name} (<strong style="color:var(--legs)">${t.gap} away</strong>)`).join(', ');
-            body = `<strong style="color:var(--legs)">Mission Critical — Push for 50:</strong> You are close to leveling up on multiple fronts: ${listStr}.`;
+            const listStr = levelUpTargets.map(t => `${t.name} (<strong style="color:var(--legs)">${t.gap}${t.unit} away</strong>)`).join(', ');
+            body = `<strong style="color:var(--legs)">Mission Critical — Push for the next level:</strong> You are close to graduating on multiple fronts: ${listStr}.`;
           }
         } else if (totalPP === 0) {
           cls = "priority-good";
