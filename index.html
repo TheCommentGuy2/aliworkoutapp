@@ -1884,31 +1884,7 @@
           Your Full Programme Preview
         </div>
         <div class="preview-table" id="onboard-preview"></div>
-        <div
-          style="
-            display: flex;
-            gap: 10px;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-          "
-        >
-          <button
-            class="g-btn"
-            style="flex: 1; padding: 12px; font-size: 12px"
-            onclick="exportData()"
-          >
-            💾 Export Backup
-          </button>
-          <button
-            class="g-btn"
-            style="flex: 1; padding: 12px; font-size: 12px"
-            onclick="importData()"
-          >
-            📂 Import Backup
-          </button>
-        </div>
-        <!-- IMPORT/EXPORT BUTTONS (Keep as is) -->
+      
         <div
           style="
             display: flex;
@@ -2301,6 +2277,40 @@
       </div>
     </div>
     
+    <!-- ============================================================ -->
+    <!-- PASSWORD CHANGE CONFIRM MODAL                                -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="password-confirm-modal">
+      <div class="modal-box" style="max-width: 400px; text-align: center">
+        <div class="modal-header">Confirm Update</div>
+        <div class="modal-sub">
+          You are changing your password. <br>
+          <strong style="color: var(--push)">Your old password will be lost.</strong>
+        </div>
+        
+        <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; text-align: left;">
+          <div style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">New Password</div>
+          <div id="confirm-new-pass-display" style="font-size: 18px; font-weight: bold; color: var(--gold); word-break: break-all;"></div>
+        </div>
+
+        <div style="display: flex; gap: 10px">
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px"
+            onclick="document.getElementById('password-confirm-modal').classList.remove('show')"
+          >
+            Cancel
+          </button>
+          <button
+            class="save-btn"
+            style="flex: 1; margin: 0; background: var(--text); color: var(--bg);"
+            onclick="finalizePasswordChange()"
+          >
+            Confirm Change
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- LEVEL CHANGE MODAL -->
     <div class="modal-overlay" id="level-modal">
@@ -2899,31 +2909,43 @@
       // STATE LOAD & SAVE
       // ============================================================
       async function loadState() {
-        const {
-          data: { session },
-        } = await supabaseClient.auth.getSession();
+        // 1. Check with Supabase Server if user actually exists
+        // (This detects if you deleted them in the dashboard)
+        const { data, error } = await supabaseClient.auth.getUser();
 
-        if (session) {
-          currentUser = session.user;
-          document.getElementById("nav-signout").style.display = "flex";
-          await loadFromSupabase();
-        } else {
-          // Force login. No more guest mode.
-          // (Local data migration happens AFTER they sign up/in)
-          document.getElementById("auth-modal").classList.add("show");
+        if (error || !data.user) {
+          // User is gone or token invalid -> WIPE EVERYTHING
+          if (currentUser) {
+            handleForceLogout();
+          } else {
+            // Just a regular logged out visitor
+            document.getElementById("auth-modal").classList.add("show");
+          }
+          return;
         }
+
+        // User is valid
+        currentUser = data.user;
+        document.getElementById("nav-signout").style.display = "flex";
+        await loadFromSupabase();
       }
 
-      function loadLocalState() {
-        try {
-          const saved = localStorage.getItem("hq_workout_state");
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            appState = { ...appState, ...parsed };
-          }
-        } catch (e) {
-          console.error(e);
-        }
+      function handleForceLogout() {
+        console.log("Account not found on server.");
+        currentUser = null;
+        document.getElementById("nav-signout").style.display = "none";
+        
+        // Wipe Data
+        appState = {};
+        localStorage.removeItem("hq_workout_state");
+        
+        // Clear Inputs
+        document.getElementById("auth-username").value = "";
+        document.getElementById("auth-password").value = "";
+        
+        // Show Login with Error
+        document.getElementById("auth-modal").classList.add("show");
+        showAuthError("Session expired or account deleted. Please sign in.");
       }
 
       async function loadFromSupabase() {
@@ -3203,23 +3225,57 @@
         }
       }
 
-      async function executePasswordChange() {
+      // ============================================================
+      // PASSWORD CHANGE LOGIC
+      // ============================================================
+      let pendingNewPassword = "";
+
+      function openChangePasswordModal() {
+        document.getElementById("settings-modal").classList.remove("show");
+        document.getElementById("new-password-input").value = "";
+        document.getElementById("change-password-modal").classList.add("show");
+      }
+
+      function toggleNewPasswordVisibility() {
+        const input = document.getElementById("new-password-input");
+        const icon = document.getElementById("new-eye-icon");
+        if (input.type === "password") {
+          input.type = "text";
+          icon.src = "eye2.png";
+        } else {
+          input.type = "password";
+          icon.src = "eye1.png";
+        }
+      }
+
+      function executePasswordChange() {
         const newPass = document.getElementById("new-password-input").value;
         if (newPass.length < 6) {
           showToast("❌", "Password must be at least 6 characters.");
           return;
         }
 
+        // 1. Close input modal
         document.getElementById("change-password-modal").classList.remove("show");
+        
+        // 2. Store temporarily and Show Confirmation Modal
+        pendingNewPassword = newPass;
+        document.getElementById("confirm-new-pass-display").textContent = newPass;
+        document.getElementById("password-confirm-modal").classList.add("show");
+      }
+
+      async function finalizePasswordChange() {
+        document.getElementById("password-confirm-modal").classList.remove("show");
         showToast("⏳", "Updating password...");
 
         const { data, error } = await supabaseClient.auth.updateUser({
-          password: newPass
+          password: pendingNewPassword
         });
+
+        pendingNewPassword = ""; // Clear memory
 
         if (error) {
           showToast("❌", "Error: " + error.message);
-          // Re-open if it failed so they can try again
           setTimeout(() => document.getElementById("change-password-modal").classList.add("show"), 500);
         } else {
           showToast("✅", "Password updated successfully.");
