@@ -3109,15 +3109,19 @@
 
       // Listen for Auth changes continuously
       supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+        if (
+          event === "SIGNED_IN" ||
+          event === "TOKEN_REFRESHED" ||
+          event === "INITIAL_SESSION"
+        ) {
           if (session) {
             currentUser = session.user;
             document.getElementById("nav-signout").style.display = "flex";
             localStorage.removeItem("hq_is_guest");
-            
+
             // Only load if we haven't loaded yet to prevent loops
             if (!appState.onboarded && !appState.name) {
-               loadFromSupabase();
+              loadFromSupabase();
             }
           }
         } else if (event === "SIGNED_OUT") {
@@ -3131,7 +3135,7 @@
           document.getElementById("auth-modal").classList.add("show");
         }
       });
-      
+
       // ============================================================
       // STATE LOAD & SAVE
       // ============================================================
@@ -3181,18 +3185,22 @@
           const localData = localSaved ? JSON.parse(localSaved) : null;
 
           // 2. Scenario: Cloud Data Exists -> Load it
-          if (data && data.app_state && Object.keys(data.app_state).length > 0) {
+          if (
+            data &&
+            data.app_state &&
+            Object.keys(data.app_state).length > 0
+          ) {
             appState = { ...appState, ...data.app_state };
             localStorage.setItem("hq_workout_state", JSON.stringify(appState));
             initAppAfterLoad();
             document.getElementById("auth-modal").classList.remove("show");
-          } 
+          }
           // 3. Scenario: New Cloud Account + Old Local Data -> Migrate
           else if (localData && localData.onboarded) {
             appState = { ...appState, ...localData };
             document.getElementById("migrate-modal").classList.add("show");
             document.getElementById("auth-modal").classList.remove("show");
-          } 
+          }
           // 4. Scenario: Brand New User -> Initialize Default
           else {
             appState = {
@@ -3212,7 +3220,7 @@
           }
         } catch (error) {
           console.error("Cloud load error:", error);
-          // 🚨 FIX: Do NOT load local state here. 
+          // 🚨 FIX: Do NOT load local state here.
           // If auth fails or DB fails, keep them on the login screen.
           // Optional: showToast("⚠️ Connection failed. Retrying...");
         }
@@ -4776,6 +4784,7 @@
       // COLLAPSE
       // ============================================================
       const blockOpen = { push: false, pull: false, legs: false };
+      const blockBuilt = { push: false, pull: false, legs: false };
 
       function toggleBlock(day) {
         blockOpen[day] = !blockOpen[day];
@@ -4783,6 +4792,13 @@
         const toggle = document.getElementById(`toggle-${day}`);
         const header = document.getElementById(`header-${day}`);
         if (blockOpen[day]) {
+          if (!blockBuilt[day]) {
+            buildExerciseList(day);
+            EXERCISES[day].forEach((ex) =>
+              updateRepProgress(ex.id, ex.sets, ex.color),
+            );
+            blockBuilt[day] = true;
+          }
           body.style.maxHeight = body.scrollHeight + 1200 + "px";
           toggle.textContent = "▾";
           header.classList.add("open");
@@ -5117,14 +5133,17 @@
 
         updateHero();
         buildWeekStrip();
-        ["push", "pull", "legs"].forEach((day) => {
-          buildExerciseList(day);
-          EXERCISES[day].forEach((ex) =>
-            updateRepProgress(ex.id, ex.sets, ex.color),
-          );
-        });
-        renderGraph();
-        renderStats();
+        const todayType = getSchedule()[getLocalTime().getDay()].type;
+        const buildNow = todayType && todayType !== "rest" ? todayType : "push";
+        buildExerciseList(buildNow);
+        EXERCISES[buildNow].forEach((ex) =>
+          updateRepProgress(ex.id, ex.sets, ex.color),
+        );
+        blockBuilt[buildNow] = true;
+        setTimeout(() => {
+          renderGraph();
+          renderStats();
+        }, 100);
 
         const today = getLocalTime().getDay();
         const sess = getSchedule()[today];
