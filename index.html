@@ -1267,40 +1267,34 @@
         gap: 8px;
         margin-top: 8px;
       }
-      .level-btn {
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
-        border: 1px solid var(--border);
-        background: var(--s2);
-        color: var(--dim);
-        font-size: 16px;
-        display: flex;
+      .not-feeling-btn {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
+        gap: 5px;
+        background: rgba(255, 209, 102, 0.06);
+        border: 1px solid rgba(255, 209, 102, 0.18);
+        color: var(--gold);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-family: "Outfit", sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.5px;
         cursor: pointer;
         transition: all 0.2s;
-        line-height: 1;
-        flex-shrink: 0;
       }
-      .level-btn:hover {
-        color: var(--text);
-        border-color: var(--muted);
+      .not-feeling-btn:hover {
+        background: rgba(255, 209, 102, 0.12);
+        border-color: rgba(255, 209, 102, 0.35);
       }
-      .level-btn.down:hover {
-        border-color: rgba(255, 77, 46, 0.5);
-        color: var(--push);
-        background: rgba(255, 77, 46, 0.08);
-      }
-      .level-btn.up:hover {
-        border-color: rgba(57, 255, 143, 0.5);
+      .not-feeling-btn.revert {
+        background: rgba(57, 255, 143, 0.06);
+        border-color: rgba(57, 255, 143, 0.2);
         color: var(--legs);
-        background: rgba(57, 255, 143, 0.08);
       }
-      .level-btn:disabled {
-        opacity: 0.2;
-        cursor: not-allowed;
-        pointer-events: none;
+      .not-feeling-btn.revert:hover {
+        background: rgba(57, 255, 143, 0.12);
+        border-color: rgba(57, 255, 143, 0.4);
       }
       .level-tag {
         font-size: 11px;
@@ -1313,7 +1307,7 @@
 
       /* LEVEL CONFIRM MODAL */
       #level-modal .modal-box {
-        max-width: 420px;
+        max-width: 440px;
       }
       .level-modal-detail {
         background: var(--bg);
@@ -1337,6 +1331,40 @@
         text-transform: uppercase;
         margin-top: 6px;
         display: block;
+      }
+      .nfi-variation-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 260px;
+        overflow-y: auto;
+        margin: 12px 0;
+      }
+      .nfi-variation-item {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .nfi-variation-item:hover {
+        border-color: rgba(255, 209, 102, 0.3);
+        background: rgba(255, 209, 102, 0.05);
+      }
+      .nfi-variation-item .nfi-name {
+        font-size: 13px;
+        color: var(--text);
+        font-weight: 500;
+      }
+      .nfi-variation-item .nfi-level {
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
       }
 
       @keyframes fadeUp {
@@ -2509,28 +2537,27 @@
 
     <!-- LEVEL CHANGE MODAL -->
     <div class="modal-overlay" id="level-modal">
-      <div class="modal-box" style="max-width: 420px">
-        <div class="modal-header" id="level-modal-title">Change Level?</div>
-        <div class="modal-sub" id="level-modal-sub"></div>
-        <div class="level-modal-detail" id="level-modal-detail"></div>
-        <div style="display: flex; gap: 10px; margin-top: 8px">
-          <button
-            class="g-btn"
-            style="flex: 1; padding: 12px; font-size: 13px"
-            onclick="closeLevelModal()"
-          >
-            Cancel
-          </button>
-          <button
-            class="save-btn"
-            style="flex: 1; margin: 0"
-            id="level-modal-confirm"
-          >
-            Confirm
-          </button>
+      <div class="modal-box">
+        <button class="close-modal-btn" onclick="closeLevelModal()">
+          &times;
+        </button>
+        <div class="modal-header" id="level-modal-title">Not Feeling It?</div>
+        <div class="modal-sub" id="level-modal-sub">
+          Pick an easier variation for today only. You'll return to your
+          baseline next session.
         </div>
+        <div class="level-modal-detail" id="level-modal-detail"></div>
+        <div class="nfi-variation-list" id="nfi-variation-list"></div>
+        <button
+          class="g-btn"
+          style="width: 100%; padding: 10px; margin-top: 4px"
+          onclick="closeLevelModal()"
+        >
+          Cancel
+        </button>
       </div>
     </div>
+
     <!-- ============================================================ -->
     <!-- AUTH MODAL                                                   -->
     <!-- ============================================================ -->
@@ -3125,7 +3152,7 @@
             id: "legs_core",
             label: "Core",
             focus: "Leg Day",
-            note: "Fast reps. Speed demon.",
+            note: "Feel the tension.",
             sets: 2,
             color: "legs",
             progressions: PROG_CORE_LEGS,
@@ -3946,6 +3973,7 @@
       function openFinishModal() {
         pendingUpgrades = [];
         let upgradeHTML = "";
+        let skippedExercises = []; // 🚨 NEW: Track missed exercises
 
         const today = getLocalTime().getDay();
         const type = getSchedule()[today].type;
@@ -3953,11 +3981,16 @@
         if (type !== "rest") {
           EXERCISES[type].forEach((ex) => {
             const vals = appState.reps[ex.id] || [];
-            // Trigger: any single set >= 50 reps
+
+            // 🚨 LOGIC: Check if exercise was skipped (all inputs empty or 0)
+            const totalReps = vals.reduce((a, b) => a + (parseInt(b) || 0), 0);
+            if (totalReps === 0) {
+              skippedExercises.push(SLOT_LABELS[ex.id]?.label || ex.id);
+            }
+
             const varType = getVarType(ex.id);
             const threshold = varType === "hold" ? 60 : 50;
             const anySetHit50 = vals.some((v) => parseInt(v) >= threshold);
-
             const baseline = sessionBaseline[ex.id] || ex.progressions[0].name;
             const isOnBaseline =
               (appState.variations[ex.id] || ex.progressions[0].name) ===
@@ -3969,7 +4002,6 @@
               const currentIdx = ex.progressions.findIndex(
                 (p) => p.name === currentName,
               );
-
               if (currentIdx > -1 && currentIdx < ex.progressions.length - 1) {
                 const next = ex.progressions[currentIdx + 1];
                 pendingUpgrades.push({
@@ -3991,17 +4023,26 @@
         }
 
         const sub = document.getElementById("finish-modal-sub");
+
+        // 🚨 DYNAMIC CONTENT: Warn about skips or show upgrades
+        let warningHTML = "";
+        if (skippedExercises.length > 0) {
+          warningHTML = `
+            <div style="background:rgba(255, 77, 46, 0.1); border:1px solid var(--push); padding:12px; border-radius:8px; margin-bottom:15px; color:var(--push); font-size:13px;">
+              <strong>⚠️ Incomplete Session:</strong><br>
+              You haven't logged reps for: ${skippedExercises.join(", ")}.
+            </div>`;
+        }
+
         if (pendingUpgrades.length > 0) {
-          sub.innerHTML = `
-    <strong>💪 You maxed out ${pendingUpgrades.length} exercise${pendingUpgrades.length > 1 ? "s" : ""}!</strong><br>
-    Check the ones you want to level up <em>next session</em>. Uncheck to stay where you are.
-    <div class="upgrade-list">${upgradeHTML}</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px">Changes apply from your next session, not today.</div>
-    <div style="font-size:12px;color:var(--dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">🔒 You can still undo this today using Reset Today's Log — but from tomorrow this session is permanent.</div>`;
+          sub.innerHTML = `${warningHTML}
+            <strong>💪 You maxed out ${pendingUpgrades.length} exercise${pendingUpgrades.length > 1 ? "s" : ""}!</strong><br>
+            Check the ones you want to level up next session.
+            <div class="upgrade-list">${upgradeHTML}</div>`;
         } else {
-          sub.innerHTML = `<strong>⚠️ Review your numbers before confirming.</strong><br><br>
-    Once locked, today's session is saved to history. You can still reset today's log using the <strong>Reset Today's Log</strong> button — but only until midnight. From tomorrow, this session is permanent.<br><br>
-    Go back if you need to adjust anything.`;
+          sub.innerHTML = `${warningHTML}
+            <strong>⚠️ Review your numbers before confirming.</strong><br><br>
+            Once locked, this session can only be edited before midnight. If you need to log missing sets or edit reps, do so before midnight.`;
         }
 
         document.getElementById("finish-modal").classList.add("show");
@@ -4308,13 +4349,39 @@
         </div>`;
           }
 
-          const readinessHTML =
-            isDayComplete && hitTarget && nextProg
-              ? `<div class="readiness-hint visible">
-           <strong>🔼 ${varType === "hold" ? "Hit 60s hold — ready to level up?" : "Hit 50+ reps — ready to level up?"}</strong>
-           Next session, consider: <em>${nextProg.name}</em>
-         </div>`
-              : `<div class="readiness-hint"></div>`;
+          const completedVariationName =
+            appState.completedVariations?.[todayStr]?.[ex.id] ||
+            ex.progressions[0].name;
+          const wasUpgraded =
+            isDayComplete &&
+            (appState.variations[ex.id] || ex.progressions[0].name) !==
+              completedVariationName;
+          const wasDowngraded =
+            isDayComplete &&
+            appState.completedVariations?.[todayStr] &&
+            ex.progressions.findIndex((p) => p.name === completedVariationName);
+          ex.progressions.findIndex(
+            (p) =>
+              p.name === (sessionBaseline[ex.id] || ex.progressions[0].name),
+          );
+
+          let readinessHTML = `<div class="readiness-hint"></div>`;
+          if (isDayComplete && hitTarget) {
+            if (wasUpgraded) {
+              readinessHTML = `<div class="readiness-hint visible" style="border-color:rgba(57,255,143,0.2);background:rgba(57,255,143,0.05)">
+                <strong>🚀 Levelled up — ${appState.variations[ex.id] || ex.progressions[0].name} awaits next session.</strong>
+              </div>`;
+            } else if (wasDowngraded) {
+              readinessHTML = `<div class="readiness-hint visible" style="border-color:rgba(255,209,102,0.2);background:rgba(255,209,102,0.05);color:var(--gold)">
+                <strong>💪 Strong session on a modified level.</strong> Return to ${sessionBaseline[ex.id] || ex.progressions[0].name} next session to chase the upgrade.
+              </div>`;
+            } else if (nextProg) {
+              readinessHTML = `<div class="readiness-hint visible">
+                <strong>🔼 ${varType === "hold" ? "Hit 60s — ready to level up?" : "Hit 50+ reps — ready to level up?"}</strong>
+                Next session, consider: <em>${nextProg.name}</em>
+              </div>`;
+            }
+          }
 
           // Level controls — only show on today's active block, session not complete
           let levelControlsHTML = "";
@@ -4329,13 +4396,16 @@
 
             levelControlsHTML = `
         <div class="level-controls">
-          <button class="level-btn down" ${canDown ? "" : "disabled"}
-            onclick="requestLevelChange('${ex.id}', 'down')" title="Drop one level">−</button>
-          <span class="level-tag ${isModified ? "modified" : ""}">
-            ${isModified ? `Today: Level ${currentIdx + 1} <span style="color:var(--muted)">/ Base: Level ${baselineIdx + 1}</span>` : `Level ${currentIdx + 1}`}
-          </span>
-          <button class="level-btn up" ${canUp ? "" : "disabled"}
-            onclick="requestLevelChange('${ex.id}', 'up')" title="Go up one level">+</button>
+          ${
+            !isModified
+              ? `<button class="not-feeling-btn" onclick="openNotFeelingIt('${ex.id}')">
+                😮‍💨 Not Feeling It
+               </button>`
+              : `<span class="level-tag modified">Today: ${currentName} <span style="color:var(--muted)">/ Base: ${baseline}</span></span>
+               <button class="not-feeling-btn revert" onclick="revertToBaseline('${ex.id}')">
+                 ↩ Revert
+               </button>`
+          }
         </div>`;
           }
 
@@ -4703,6 +4773,26 @@
         );
         const today = getLocalTime();
 
+        // NEW PRIORITY 0: Call out skipped exercises from TODAY
+        const todayStr = getLocalDateStr();
+        const todayType = getSchedule()[today.getDay()].type;
+        let skippedToday = [];
+
+        if (appState.completed[todayStr] && todayType !== "rest") {
+          EXERCISES[todayType].forEach((ex) => {
+            const vals = appState.reps[ex.id] || [];
+            const total = vals.reduce((a, b) => a + (parseInt(b) || 0), 0);
+            if (total === 0) skippedToday.push(SLOT_LABELS[ex.id]?.label);
+          });
+        }
+
+        if (skippedToday.length > 0) {
+          type = "warning";
+          icon = "⚠️";
+          title = "SESSION DEFICIT";
+          msg = `You locked today's session without completing <strong>${skippedToday.join(" and ")}</strong>. To maximize gains, ensure every programmed slot is fired.`;
+        }
+
         // Calculate Push vs Pull Volume (Last 30 entries)
         let pushVol = 0;
         let pullVol = 0;
@@ -4969,7 +5059,7 @@
         document.getElementById("today-vol-total").textContent =
           `Today: ${todayEntry.total}`;
 
-      renderCoaching();
+        renderCoaching();
       }
 
       // ============================================================
@@ -5019,82 +5109,77 @@
       }
 
       // ============================================================
-      // LEVEL CHANGE (TEMPORARY DOWNGRADE / RE-UPGRADE)
+      // LEVEL CHANGE — "NOT FEELING IT"
       // ============================================================
       let pendingLevelChange = null;
 
-      function requestLevelChange(exId, direction) {
+      function openNotFeelingIt(exId) {
         const ex = Object.values(EXERCISES)
           .flat()
           .find((e) => e.id === exId);
-        const currentName =
-          appState.variations[exId] || ex.progressions[0].name;
-        const currentIdx = ex.progressions.findIndex(
-          (p) => p.name === currentName,
-        );
         const baseline = sessionBaseline[exId] || ex.progressions[0].name;
         const baselineIdx = ex.progressions.findIndex(
           (p) => p.name === baseline,
         );
 
-        let targetIdx;
-        if (direction === "down") {
-          targetIdx = currentIdx - 1;
-        } else {
-          targetIdx = currentIdx + 1;
-          // Cannot exceed baseline via manual upgrade
-          if (targetIdx > baselineIdx) return;
+        // Build list of all variations BELOW baseline (index 0 to baselineIdx-1)
+        const options = ex.progressions.slice(0, baselineIdx);
+        if (options.length === 0) {
+          showToast(
+            "💪",
+            `<strong>Already at the floor.</strong><br>No easier variation exists.`,
+          );
+          return;
         }
 
-        if (targetIdx < 0 || targetIdx >= ex.progressions.length) return;
-
-        const targetName = ex.progressions[targetIdx].name;
-        const isDown = direction === "down";
-
-        pendingLevelChange = { exId, targetName, targetIdx };
-
-        document.getElementById("level-modal-title").textContent = isDown
-          ? "Drop a Level?"
-          : "Step Back Up?";
-        document.getElementById("level-modal-sub").textContent = isDown
-          ? "This is for today only. You'll return to your baseline next session."
-          : "Stepping back up toward your baseline for today.";
+        document.getElementById("level-modal-title").textContent =
+          "Not Feeling It?";
+        document.getElementById("level-modal-sub").textContent =
+          "Pick an easier variation for today only. Reverts to baseline next session.";
         document.getElementById("level-modal-detail").innerHTML = `
-    <span class="${isDown ? "from" : "to"}">${currentName}</span>
-    <span style="color:var(--muted)"> → </span>
-    <span class="${isDown ? "to" : "from"}">${targetName}</span>
-    <span class="revert">↩ Reverts to: ${baseline} next session</span>`;
+    <span style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px">Your baseline</span><br>
+    <span style="color:var(--text);font-weight:600">${baseline}</span>
+    <span class="revert">↩ Auto-restores next session</span>`;
 
-        const confirmBtn = document.getElementById("level-modal-confirm");
-        confirmBtn.textContent = isDown ? "Yes, Drop Down" : "Yes, Step Up";
-        confirmBtn.style.background = isDown
-          ? "rgba(255,77,46,0.15)"
-          : "var(--text)";
-        confirmBtn.style.color = isDown ? "var(--push)" : "var(--bg)";
-        confirmBtn.style.border = isDown
-          ? "1px solid rgba(255,77,46,0.3)"
-          : "none";
-        confirmBtn.onclick = confirmLevelChange;
+        // Render variation options, highest first (closest to baseline at top)
+        const listEl = document.getElementById("nfi-variation-list");
+        listEl.innerHTML = options
+          .slice()
+          .reverse()
+          .map((p, i) => {
+            const realIdx = baselineIdx - 1 - i;
+            return `<div class="nfi-variation-item" onclick="confirmNotFeelingIt('${exId}', '${p.name.replace(/'/g, "\\'")}')">
+      <span class="nfi-name">${p.name}</span>
+      <span class="nfi-level">Level ${realIdx + 1}</span>
+    </div>`;
+          })
+          .join("");
 
         document.getElementById("level-modal").classList.add("show");
       }
 
-      function confirmLevelChange() {
-        if (!pendingLevelChange) return;
-        const { exId, targetName } = pendingLevelChange;
-
-        // Clear reps for this exercise since variation changed
+      function confirmNotFeelingIt(exId, targetName) {
         const ex = Object.values(EXERCISES)
           .flat()
           .find((e) => e.id === exId);
+
+        // Lock in the real baseline BEFORE overwriting variations
+        if (!sessionBaseline[exId]) {
+          sessionBaseline[exId] =
+            appState.variations[exId] || ex.progressions[0].name;
+        }
+        // Force-protect it from being overwritten by any subsequent initUI snapshot
+        const trueBaseline = sessionBaseline[exId];
+
         appState.reps[exId] = Array(ex.sets).fill("");
         appState.variations[exId] = targetName;
 
-        // Do NOT persist this as completedVariations — baseline handles revert
+        // Immediately re-assert baseline in case saveState/initUI clobbers it
+        sessionBaseline[exId] = trueBaseline;
+
         saveState();
         closeLevelModal();
 
-        // Rebuild just today's block
         const today = getLocalTime().getDay();
         const type = getSchedule()[today].type;
         buildExerciseList(type);
@@ -5102,15 +5187,35 @@
           updateRepProgress(e.id, e.sets, e.color),
         );
         updateDailyVolume();
+        openBlock(type);
+        sessionBaseline[exId] = trueBaseline;
+        
+        showToast(
+          "😮‍💨",
+          `<strong>Modified for today.</strong><br>Now on: ${targetName}`,
+        );
+      }
 
-        // Re-open the block since buildExerciseList resets it
+      function revertToBaseline(exId) {
+        const ex = Object.values(EXERCISES)
+          .flat()
+          .find((e) => e.id === exId);
+        const baseline = sessionBaseline[exId] || ex.progressions[0].name;
+        appState.reps[exId] = Array(ex.sets).fill("");
+        appState.variations[exId] = baseline;
+
+        saveState();
+
+        const today = getLocalTime().getDay();
+        const type = getSchedule()[today].type;
+        buildExerciseList(type);
+        EXERCISES[type].forEach((e) =>
+          updateRepProgress(e.id, e.sets, e.color),
+        );
+        updateDailyVolume();
         openBlock(type);
 
-        pendingLevelChange = null;
-        showToast(
-          "🔄",
-          `<strong>Level changed.</strong><br>Now on: ${targetName}`,
-        );
+        showToast("↩", `<strong>Reverted.</strong><br>Back to: ${baseline}`);
       }
 
       function closeLevelModal() {
@@ -5309,6 +5414,10 @@
       // INIT
       // ============================================================
       function initUI() {
+        // Reset block built flags so all blocks rebuild fresh
+        blockBuilt.push = false;
+        blockBuilt.pull = false;
+        blockBuilt.legs = false;
         // Snapshot baseline at session start (in-memory only, not persisted)
         const todayStr = getLocalDateStr();
         const isDayComplete = !!appState.completed[todayStr];
