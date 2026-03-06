@@ -3174,6 +3174,7 @@
         sessionPRs: {},
         completed: {},
         personalRecords: {},
+        completedVariations: {},
       };
 
       let sessionBaseline = {};
@@ -3298,6 +3299,7 @@
               sessionPRs: {},
               completed: {},
               personalRecords: {},
+              completedVariations: {},
             };
             initAppAfterLoad();
             document.getElementById("auth-modal").classList.remove("show");
@@ -3856,6 +3858,7 @@
           sessionPRs: {},
           completed: {},
           personalRecords: {},
+          completedVariations: {},
         };
 
         sessionBaseline = {};
@@ -3922,11 +3925,10 @@
               ex.progressions[0].name;
           });
         }
-
         // Now roll back variations
         if (sessionVariations) {
           Object.assign(appState.variations, sessionVariations);
-          delete appState.completedVariations[todayStr];
+          if (appState.completedVariations) delete appState.completedVariations[todayStr];
         }
         Object.keys(sessionBaseline).forEach((exId) => {
           appState.variations[exId] = sessionBaseline[exId];
@@ -5111,7 +5113,6 @@
       // ============================================================
       // LEVEL CHANGE — "NOT FEELING IT"
       // ============================================================
-      let pendingLevelChange = null;
 
       function openNotFeelingIt(exId) {
         const ex = Object.values(EXERCISES)
@@ -5220,7 +5221,6 @@
 
       function closeLevelModal() {
         document.getElementById("level-modal").classList.remove("show");
-        pendingLevelChange = null;
       }
 
       function renderStats() {
