@@ -3578,11 +3578,17 @@
           sel.innerHTML = prog
             .map((p, i) => `<option value="${i}">${p.name}</option>`)
             .join("");
-          // Pre-select saved variation if exists
+            
           const saved = appState.variations[cfg.exId];
           if (saved) {
             const idx = prog.findIndex((p) => p.name === saved);
-            if (idx > -1) sel.value = idx;
+            if (idx > -1) {
+              sel.value = idx;
+            } else {
+              sel.value = 0;
+            }
+          } else {
+            sel.value = 0;
           }
         });
       }
@@ -3744,36 +3750,73 @@
         setTimeout(() => openSettings(false), 200);
       }
 
-      function executeReset() {
-        localStorage.removeItem("hq_workout_state");
+      async function executeReset() {
+        const overlay = document.getElementById("transfer-overlay");
+        const msgEl = document.getElementById("transfer-msg");
+        const subEl = document.getElementById("transfer-sub");
+        
+        msgEl.textContent = "Factory Resetting...";
+        subEl.textContent = "Scrubbing cloud archives";
+        overlay.classList.add("show");
+
+        document.getElementById("reset-modal").classList.remove("show");
+
         appState = {
           onboarded: false,
           name: "",
           split: "default",
           date: "",
           reps: {},
-          sessionPRs: {},
           variations: {},
           history: {},
+          sessionPRs: {},
           completed: {},
           personalRecords: {},
         };
 
-        // Sync wipe to cloud
+        sessionBaseline = {};
+
         if (currentUser) {
-          // 🚨 CHANGED TO supabaseClient
-          supabaseClient.from("user_data").upsert({
+          const { error } = await supabaseClient.from("user_data").upsert({
             user_id: currentUser.id,
             app_state: appState,
           });
+          
+          if (error) {
+            console.error("Reset failed:", error);
+            overlay.classList.remove("show");
+            showToast("❌", "Reset failed. Network error.");
+            return;
+          }
         }
 
-        document.getElementById("reset-modal").classList.remove("show");
-        showToast(
-          "🔄",
-          "<strong>All data wiped.</strong><br>Starting fresh — complete setup to continue.",
-        );
-        setTimeout(() => openSettings(true), 800);
+        localStorage.removeItem("hq_workout_state");
+
+        document.getElementById("setup-name").value = "";
+        document.getElementById("setup-split").value = "default";
+        
+        Object.keys(ONBOARD_MAP).forEach((selectId) => {
+          const sel = document.getElementById(selectId);
+          if (sel) sel.selectedIndex = 0;
+        });
+
+        ["push", "pull", "legs"].forEach((day) => {
+          if (blockOpen[day]) toggleBlock(day);
+        });
+
+        setTimeout(() => {
+          overlay.classList.remove("show");
+          showToast(
+            "🔄",
+            "<strong>All data wiped.</strong><br>Starting fresh."
+          );
+          
+          document.getElementById("hero-user-name").textContent = "Athlete";
+          document.getElementById("today-vol-total").textContent = "Today: 0";
+          
+          initAppAfterLoad();
+          
+        }, 800);
       }
 
       function resetToday() {
