@@ -1167,6 +1167,61 @@
         font-size: 13px;
       }
 
+      /* COACHING WIDGET */
+      .insight-box {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        animation: fadeUp 0.5s ease both;
+      }
+      .insight-icon {
+        font-size: 20px;
+        background: rgba(255, 209, 102, 0.1);
+        color: var(--gold);
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 209, 102, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .insight-content {
+        flex: 1;
+      }
+      .insight-title {
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+        font-weight: 700;
+      }
+      .insight-body {
+        font-size: 13px;
+        color: var(--text);
+        line-height: 1.5;
+      }
+      .insight-body strong {
+        color: var(--gold);
+        font-weight: 600;
+      }
+      /* Severity Colors */
+      .insight-box.warning .insight-icon {
+        background: rgba(255, 77, 46, 0.1);
+        border-color: rgba(255, 77, 46, 0.3);
+        color: var(--push);
+      }
+      .insight-box.success .insight-icon {
+        background: rgba(57, 255, 143, 0.1);
+        border-color: rgba(57, 255, 143, 0.3);
+        color: var(--legs);
+      }
+
       /* TOAST */
       .toast {
         position: fixed;
@@ -1614,6 +1669,8 @@
             Missed
           </div>
         </div>
+
+        <div id="coaching-widget"></div>
       </div>
 
       <!-- PUSH BLOCK -->
@@ -3578,7 +3635,7 @@
           sel.innerHTML = prog
             .map((p, i) => `<option value="${i}">${p.name}</option>`)
             .join("");
-            
+
           const saved = appState.variations[cfg.exId];
           if (saved) {
             const idx = prog.findIndex((p) => p.name === saved);
@@ -3754,7 +3811,7 @@
         const overlay = document.getElementById("transfer-overlay");
         const msgEl = document.getElementById("transfer-msg");
         const subEl = document.getElementById("transfer-sub");
-        
+
         msgEl.textContent = "Factory Resetting...";
         subEl.textContent = "Scrubbing cloud archives";
         overlay.classList.add("show");
@@ -3781,7 +3838,7 @@
             user_id: currentUser.id,
             app_state: appState,
           });
-          
+
           if (error) {
             console.error("Reset failed:", error);
             overlay.classList.remove("show");
@@ -3794,7 +3851,7 @@
 
         document.getElementById("setup-name").value = "";
         document.getElementById("setup-split").value = "default";
-        
+
         Object.keys(ONBOARD_MAP).forEach((selectId) => {
           const sel = document.getElementById(selectId);
           if (sel) sel.selectedIndex = 0;
@@ -3808,14 +3865,13 @@
           overlay.classList.remove("show");
           showToast(
             "🔄",
-            "<strong>All data wiped.</strong><br>Starting fresh."
+            "<strong>All data wiped.</strong><br>Starting fresh.",
           );
-          
+
           document.getElementById("hero-user-name").textContent = "Athlete";
           document.getElementById("today-vol-total").textContent = "Today: 0";
-          
+
           initAppAfterLoad();
-          
         }, 800);
       }
 
@@ -4636,6 +4692,97 @@
         return sched[date.getDay()]?.type || "rest";
       }
 
+      function renderCoaching() {
+        const container = document.getElementById("coaching-widget");
+        if (!container) return;
+
+        // 1. Gather Data
+        const hist = appState.history || {};
+        const entries = Object.values(hist).filter(
+          (e) => typeof e === "object",
+        );
+        const today = getLocalTime();
+
+        // Calculate Push vs Pull Volume (Last 30 entries)
+        let pushVol = 0;
+        let pullVol = 0;
+        entries.slice(-30).forEach((e) => {
+          if (e.type === "push") pushVol += e.total;
+          if (e.type === "pull") pullVol += e.total;
+        });
+
+        // Check for Level Up Proximity (Current Reps)
+        let closeToLevelUp = null;
+        Object.keys(appState.reps).forEach((exId) => {
+          const reps = appState.reps[exId].map((r) => parseInt(r) || 0);
+          const maxRep = Math.max(...reps);
+          // If they are between 40 and 49 reps, they are SO CLOSE
+          if (maxRep >= 40 && maxRep < 50) {
+            const exName = SLOT_LABELS[exId]?.label || "Exercise";
+            if (!closeToLevelUp || maxRep > closeToLevelUp.reps) {
+              closeToLevelUp = { name: exName, reps: maxRep };
+            }
+          }
+        });
+
+        // 2. Decide on the Message (Priority System)
+        let icon = "📊";
+        let title = "ANALYSIS";
+        let msg = "Keep logging data to unlock insights.";
+        let type = "neutral";
+
+        const ratio = pullVol > 0 ? pushVol / pullVol : 0;
+
+        // PRIORITY 1: Safety/Imbalance (If Push is > 2x Pull)
+        if (pushVol > 100 && pullVol > 100 && (ratio > 2.0 || ratio < 0.5)) {
+          type = "warning";
+          icon = "⚠️";
+          title = "IMBALANCE DETECTED";
+          if (ratio > 2.0) {
+            msg = `Your Push volume is <strong>${ratio.toFixed(1)}x higher</strong> than Pull. Prioritize <strong>Pull Days</strong> to prevent shoulder injury and improve posture.`;
+          } else {
+            msg = `Your Pull volume is significantly higher than Push. Ensure you aren't neglecting your pushing strength.`;
+          }
+        }
+        // PRIORITY 2: Level Up Hype (If close to 50)
+        else if (closeToLevelUp) {
+          type = "success";
+          icon = "🚀";
+          title = "MISSION CRITICAL";
+          msg = `You hit <strong>${closeToLevelUp.reps} reps</strong> on ${closeToLevelUp.name}. You are only <strong>${50 - closeToLevelUp.reps} reps away</strong> from leveling up. Push for 50 next session!`;
+        }
+        // PRIORITY 3: Consistency (Streak)
+        else {
+          let streak = 0;
+          for (let i = 0; i < 7; i++) {
+            const d = new Date(today.getTime() - i * 86400000);
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            if (appState.completed && appState.completed[dateStr]) streak++;
+          }
+          if (streak >= 3) {
+            type = "success";
+            icon = "🔥";
+            title = "MOMENTUM";
+            msg = `You've trained <strong>${streak} times</strong> in the last 7 days. Consistency is the primary driver of adaptation. Keep it up.`;
+          } else {
+            title = "BRIEFING";
+            msg =
+              "Consistency beats intensity. Aim to complete all scheduled sessions this week to build your streak.";
+          }
+        }
+
+        // 3. Render
+        container.innerHTML = `
+          <div class="insight-box ${type}">
+            <div class="insight-icon">${icon}</div>
+            <div class="insight-content">
+              <div class="insight-title">${title}</div>
+              <div class="insight-body">${msg}</div>
+            </div>
+          </div>
+        `;
+      }
+
       function renderGraph() {
         const container = document.getElementById("volume-graph");
         if (!container) return;
@@ -4821,6 +4968,8 @@
         const todayEntry = getHistoryTotal(todayStr);
         document.getElementById("today-vol-total").textContent =
           `Today: ${todayEntry.total}`;
+
+      renderCoaching();
       }
 
       // ============================================================
