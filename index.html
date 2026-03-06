@@ -50,7 +50,7 @@
         content: "";
         position: fixed;
         inset: 0;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        background-color: var(--bg);
         pointer-events: none;
         z-index: 0;
         opacity: 0.4;
@@ -184,15 +184,15 @@
       }
       .hero-name {
         font-family: "Syne", sans-serif;
-        font-size: clamp(40px, 11vw, 110px); 
+        font-size: clamp(40px, 11vw, 110px);
         font-weight: 800;
-        line-height: 1.05; 
+        line-height: 1.05;
         letter-spacing: -2px;
         animation: fadeUp 0.8s ease both 0.15s;
-        overflow-wrap: break-word; 
-        word-break: break-word;    
-        hyphens: auto;         
-        max-width: 100%;          
+        overflow-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
+        max-width: 100%;
       }
       .hero-name .user-name {
         background: linear-gradient(135deg, #fff 0%, #9aa0b0 100%);
@@ -1441,7 +1441,12 @@
           <span id="greeting-chip-text">Local Time</span>
         </div>
         <p class="hero-greeting" id="hero-greeting">Loading —</p>
-        <h1 class="hero-name" onclick="openEditName()" style="cursor: pointer;" title="Change Display Name">
+        <h1
+          class="hero-name"
+          onclick="openEditName()"
+          style="cursor: pointer"
+          title="Change Display Name"
+        >
           <span class="user-name" id="hero-user-name">Athlete</span
           ><span class="dot">.</span>
         </h1>
@@ -1884,7 +1889,7 @@
           Your Full Programme Preview
         </div>
         <div class="preview-table" id="onboard-preview"></div>
-      
+
         <div
           style="
             display: flex;
@@ -1911,10 +1916,21 @@
         </div>
 
         <!-- CHANGE PASSWORD SECTION -->
-        <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
-           <button
+        <div
+          style="
+            margin-top: 12px;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+          "
+        >
+          <button
             class="g-btn"
-            style="width: 100%; padding: 12px; border-color: var(--muted); color: var(--text);"
+            style="
+              width: 100%;
+              padding: 12px;
+              border-color: var(--muted);
+              color: var(--text);
+            "
             onclick="openChangePasswordModal()"
           >
             🔐 Change Password
@@ -2216,20 +2232,30 @@
       <div class="modal-box" style="max-width: 420px; text-align: center">
         <div class="modal-header" id="import-modal-title">Overwrite Data?</div>
         <div class="modal-sub" id="import-modal-msg">
-          This will overwrite your current programme with the backup file. Continue?
+          This will overwrite your current programme with the backup file.
+          Continue?
         </div>
         <div style="display: flex; gap: 10px; margin-top: 20px">
           <button
             class="g-btn"
             style="flex: 1; padding: 12px"
-            onclick="document.getElementById('import-confirm-modal').classList.remove('show')"
+            onclick="
+              document
+                .getElementById('import-confirm-modal')
+                .classList.remove('show')
+            "
           >
             Cancel
           </button>
           <button
             class="save-btn"
             id="import-confirm-btn"
-            style="flex: 1; margin: 0; background: var(--gold); color: var(--bg);"
+            style="
+              flex: 1;
+              margin: 0;
+              background: var(--gold);
+              color: var(--bg);
+            "
             onclick="executeImport()"
           >
             Yes, Import
@@ -2245,12 +2271,38 @@
       <div class="modal-box" style="max-width: 360px; text-align: center">
         <div class="modal-header">Update Name</div>
         <div class="modal-sub">Change how you are addressed by the system.</div>
-        <div class="form-group" style="text-align: left; margin-top: 20px;">
-          <input type="text" id="new-display-name" class="form-control" placeholder="Enter new Operative Name" />
+        <div class="form-group" style="text-align: left; margin-top: 20px">
+          <input
+            type="text"
+            id="new-display-name"
+            class="form-control"
+            placeholder="Enter new Operative Name"
+          />
         </div>
         <div style="display: flex; gap: 10px; margin-top: 20px">
-          <button class="g-btn" style="flex: 1; padding: 12px" onclick="document.getElementById('edit-name-modal').classList.remove('show')">Cancel</button>
-          <button class="save-btn" style="flex: 1; margin: 0; background: var(--gold); color: var(--bg);" onclick="saveNewName()">Save Name</button>
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px"
+            onclick="
+              document
+                .getElementById('edit-name-modal')
+                .classList.remove('show')
+            "
+          >
+            Cancel
+          </button>
+          <button
+            class="save-btn"
+            style="
+              flex: 1;
+              margin: 0;
+              background: var(--gold);
+              color: var(--bg);
+            "
+            onclick="saveNewName()"
+          >
+            Save Name
+          </button>
         </div>
       </div>
     </div>
@@ -2262,21 +2314,70 @@
       <div class="modal-box" style="max-width: 360px; text-align: center">
         <div class="modal-header">New Password</div>
         <div class="modal-sub">Enter your new secure password below.</div>
-        
-        <div class="form-group" style="text-align: left; margin-top: 20px; position: relative;">
-          <input type="password" id="new-password-input" class="form-control" placeholder="Min 6 characters" style="padding-right: 40px;" />
-           <button type="button" onclick="toggleNewPasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; display: flex; align-items: center; opacity: 0.6;">
-            <img id="new-eye-icon" src="eye1.png" style="width: 20px; height: 20px;" />
+
+        <div
+          class="form-group"
+          style="text-align: left; margin-top: 20px; position: relative"
+        >
+          <input
+            type="password"
+            id="new-password-input"
+            class="form-control"
+            placeholder="Min 6 characters"
+            style="padding-right: 40px"
+          />
+          <button
+            type="button"
+            onclick="toggleNewPasswordVisibility()"
+            style="
+              position: absolute;
+              right: 12px;
+              top: 50%;
+              transform: translateY(-50%);
+              background: none;
+              border: none;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              opacity: 0.6;
+            "
+          >
+            <img
+              id="new-eye-icon"
+              src="eye1.png"
+              style="width: 20px; height: 20px"
+            />
           </button>
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 20px">
-          <button class="g-btn" style="flex: 1; padding: 12px" onclick="document.getElementById('change-password-modal').classList.remove('show')">Cancel</button>
-          <button class="save-btn" style="flex: 1; margin: 0; background: var(--text); color: var(--bg);" onclick="executePasswordChange()">Update</button>
+          <button
+            class="g-btn"
+            style="flex: 1; padding: 12px"
+            onclick="
+              document
+                .getElementById('change-password-modal')
+                .classList.remove('show')
+            "
+          >
+            Cancel
+          </button>
+          <button
+            class="save-btn"
+            style="
+              flex: 1;
+              margin: 0;
+              background: var(--text);
+              color: var(--bg);
+            "
+            onclick="executePasswordChange()"
+          >
+            Update
+          </button>
         </div>
       </div>
     </div>
-    
+
     <!-- ============================================================ -->
     <!-- PASSWORD CHANGE CONFIRM MODAL                                -->
     <!-- ============================================================ -->
@@ -2284,26 +2385,63 @@
       <div class="modal-box" style="max-width: 400px; text-align: center">
         <div class="modal-header">Confirm Update</div>
         <div class="modal-sub">
-          You are changing your password. <br>
-          <strong style="color: var(--push)">Your old password will be lost.</strong>
+          You are changing your password. <br />
+          <strong style="color: var(--push)"
+            >Your old password will be lost.</strong
+          >
         </div>
-        
-        <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; text-align: left;">
-          <div style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">New Password</div>
-          <div id="confirm-new-pass-display" style="font-size: 18px; font-weight: bold; color: var(--gold); word-break: break-all;"></div>
+
+        <div
+          style="
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            text-align: left;
+          "
+        >
+          <div
+            style="
+              color: var(--muted);
+              font-size: 11px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            "
+          >
+            New Password
+          </div>
+          <div
+            id="confirm-new-pass-display"
+            style="
+              font-size: 18px;
+              font-weight: bold;
+              color: var(--gold);
+              word-break: break-all;
+            "
+          ></div>
         </div>
 
         <div style="display: flex; gap: 10px">
           <button
             class="g-btn"
             style="flex: 1; padding: 12px"
-            onclick="document.getElementById('password-confirm-modal').classList.remove('show')"
+            onclick="
+              document
+                .getElementById('password-confirm-modal')
+                .classList.remove('show')
+            "
           >
             Cancel
           </button>
           <button
             class="save-btn"
-            style="flex: 1; margin: 0; background: var(--text); color: var(--bg);"
+            style="
+              flex: 1;
+              margin: 0;
+              background: var(--text);
+              color: var(--bg);
+            "
             onclick="finalizePasswordChange()"
           >
             Confirm Change
@@ -2345,7 +2483,9 @@
         <div class="modal-sub">
           Create a unique username to sync your progress.
           <br /><br />
-          <strong style="color: var(--push)">⚠️ WARNING:</strong> If you forget your password, you cannot sign in. You can only change your password while you are logged in.
+          <strong style="color: var(--push)">⚠️ WARNING:</strong> If you forget
+          your password, you cannot sign in. You can only change your password
+          while you are logged in.
         </div>
 
         <div class="form-group" style="text-align: left">
@@ -2354,20 +2494,47 @@
             id="auth-username"
             class="form-control"
             placeholder="Username (no spaces)"
-            oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9._-]/g, '')"
+            oninput="
+              this.value = this.value.toLowerCase().replace(/[^a-z0-9._-]/g, '')
+            "
           />
         </div>
 
-        <div class="form-group" style="text-align: left; margin-bottom: 10px; position: relative;">
+        <div
+          class="form-group"
+          style="text-align: left; margin-bottom: 10px; position: relative"
+        >
           <input
             type="password"
             id="auth-password"
             class="form-control"
             placeholder="Password (min 6 characters)"
-            style="padding-right: 40px;"
+            style="padding-right: 40px"
           />
-          <button type="button" onclick="togglePassword()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; display: flex; align-items: center; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
-            <img id="eye-icon" src="eye1.png" style="width: 20px; height: 20px;" />
+          <button
+            type="button"
+            onclick="togglePassword()"
+            style="
+              position: absolute;
+              right: 12px;
+              top: 50%;
+              transform: translateY(-50%);
+              background: none;
+              border: none;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              opacity: 0.6;
+              transition: opacity 0.2s;
+            "
+            onmouseover="this.style.opacity = '1'"
+            onmouseout="this.style.opacity = '0.6'"
+          >
+            <img
+              id="eye-icon"
+              src="eye1.png"
+              style="width: 20px; height: 20px"
+            />
           </button>
         </div>
 
@@ -2384,7 +2551,7 @@
         <div style="display: flex; gap: 10px">
           <button
             class="save-btn"
-            style="flex: 1; margin: 0; background: var(--push); color: #000;"
+            style="flex: 1; margin: 0; background: var(--push); color: #000"
             onclick="handleAuth('signup')"
           >
             Sign Up
@@ -2442,7 +2609,8 @@
       <div class="modal-box" style="max-width: 400px; text-align: center">
         <div class="modal-header">Sign Out?</div>
         <div class="modal-sub">
-          Are you sure you want to sign out?<br />Your data is safely synced to the cloud.
+          Are you sure you want to sign out?<br />Your data is safely synced to
+          the cloud.
         </div>
         <div style="display: flex; gap: 10px; margin-top: 20px">
           <button
@@ -2454,7 +2622,7 @@
           </button>
           <button
             class="save-btn"
-            style="flex: 1; margin: 0; background: var(--push); color: #000;"
+            style="flex: 1; margin: 0; background: var(--push); color: #000"
             onclick="confirmSignOut()"
           >
             Sign Out
@@ -2469,22 +2637,38 @@
     <div class="modal-overlay" id="settings-confirm-modal">
       <div class="modal-box" style="max-width: 420px; text-align: center">
         <div class="modal-header">⚠️ Reset Routine?</div>
-        <div class="modal-sub" style="text-align: left; background: rgba(255,77,46,0.08); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,77,46,0.2); margin-bottom: 20px;">
-          <strong>This will reset today's active session.</strong><br><br>
-          • <strong>To change Name only:</strong> Click your name on the home screen instead. It's safer.<br>
-          • <strong>To change Split/Exercises:</strong> Continue below. This will apply the specific variations selected in the dropdowns.
+        <div
+          class="modal-sub"
+          style="
+            text-align: left;
+            background: rgba(255, 77, 46, 0.08);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 77, 46, 0.2);
+            margin-bottom: 20px;
+          "
+        >
+          <strong>This will reset today's active session.</strong><br /><br />
+          • <strong>To change Name only:</strong> Click your name on the home
+          screen instead. It's safer.<br />
+          • <strong>To change Split/Exercises:</strong> Continue below. This
+          will apply the specific variations selected in the dropdowns.
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px">
           <button
             class="g-btn"
             style="flex: 1; padding: 12px"
-            onclick="document.getElementById('settings-confirm-modal').classList.remove('show')"
+            onclick="
+              document
+                .getElementById('settings-confirm-modal')
+                .classList.remove('show')
+            "
           >
             Cancel
           </button>
           <button
             class="save-btn"
-            style="flex: 1; margin: 0; background: var(--push); color: #000;"
+            style="flex: 1; margin: 0; background: var(--push); color: #000"
             onclick="executeSaveSettings()"
           >
             Yes, Re-Initialize
@@ -2499,28 +2683,72 @@
       <div class="modal-box" style="max-width: 400px; text-align: center">
         <div class="modal-header">Save Your Vault Key</div>
         <div class="modal-sub">
-          If you lose these, <strong style="color: var(--push)">you cannot sign in</strong>. Store them somewhere safe.
+          If you lose these,
+          <strong style="color: var(--push)">you cannot sign in</strong>. Store
+          them somewhere safe.
         </div>
-        
-        <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 20px; text-align: left;">
-          <div style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Username</div>
-          <div id="confirm-username-display" style="font-size: 18px; font-weight: bold; margin-bottom: 12px; color: var(--text);"></div>
-          
-          <div style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Password</div>
-          <div id="confirm-password-display" style="font-size: 18px; font-weight: bold; color: var(--gold);"></div>
+
+        <div
+          style="
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: left;
+          "
+        >
+          <div
+            style="
+              color: var(--muted);
+              font-size: 11px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            "
+          >
+            Username
+          </div>
+          <div
+            id="confirm-username-display"
+            style="
+              font-size: 18px;
+              font-weight: bold;
+              margin-bottom: 12px;
+              color: var(--text);
+            "
+          ></div>
+
+          <div
+            style="
+              color: var(--muted);
+              font-size: 11px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            "
+          >
+            Password
+          </div>
+          <div
+            id="confirm-password-display"
+            style="font-size: 18px; font-weight: bold; color: var(--gold)"
+          ></div>
         </div>
 
         <div style="display: flex; gap: 10px">
           <button
             class="g-btn"
             style="flex: 1; padding: 12px"
-            onclick="document.getElementById('signup-confirm-modal').classList.remove('show')"
+            onclick="
+              document
+                .getElementById('signup-confirm-modal')
+                .classList.remove('show')
+            "
           >
             Wait, go back
           </button>
           <button
             class="save-btn"
-            style="flex: 1; margin: 0; background: var(--legs); color: #000;"
+            style="flex: 1; margin: 0; background: var(--legs); color: #000"
             onclick="executeSignUp()"
           >
             I wrote it down
@@ -2557,6 +2785,7 @@
       );
 
       let currentUser = null;
+      let saveTimer = null;
 
       // ============================================================
       // PROGRESSION LISTS
@@ -2880,51 +3109,41 @@
 
       // Listen for Auth changes continuously
       supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          currentUser = session.user;
-          document.getElementById("nav-signout").style.display = "flex";
-          document.getElementById("auth-modal").classList.remove("show");
-          localStorage.removeItem("hq_is_guest"); // Clean up old guest flags
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+          if (session) {
+            currentUser = session.user;
+            document.getElementById("nav-signout").style.display = "flex";
+            localStorage.removeItem("hq_is_guest");
+            
+            // Only load if we haven't loaded yet to prevent loops
+            if (!appState.onboarded && !appState.name) {
+               loadFromSupabase();
+            }
+          }
         } else if (event === "SIGNED_OUT") {
           currentUser = null;
           document.getElementById("nav-signout").style.display = "none";
-          
-          // 1. Clear memory
-          appState = {}; 
-          
-          // 2. Wipe the local browser cache
+          appState = {};
           localStorage.removeItem("hq_workout_state");
-          
-          // 3. Clear the input boxes on the login screen
           document.getElementById("auth-username").value = "";
           document.getElementById("auth-password").value = "";
           document.getElementById("auth-error").textContent = "";
-          
-          // 4. Show the login screen again
           document.getElementById("auth-modal").classList.add("show");
         }
       });
-
+      
       // ============================================================
       // STATE LOAD & SAVE
       // ============================================================
       async function loadState() {
-        // 1. Check with Supabase Server if user actually exists
-        // (This detects if you deleted them in the dashboard)
         const { data, error } = await supabaseClient.auth.getUser();
 
         if (error || !data.user) {
-          // User is gone or token invalid -> WIPE EVERYTHING
-          if (currentUser) {
-            handleForceLogout();
-          } else {
-            // Just a regular logged out visitor
-            document.getElementById("auth-modal").classList.add("show");
-          }
+          // If no user, FORCE the modal to show
+          document.getElementById("auth-modal").classList.add("show");
           return;
         }
 
-        // User is valid
         currentUser = data.user;
         document.getElementById("nav-signout").style.display = "flex";
         await loadFromSupabase();
@@ -2934,21 +3153,23 @@
         console.log("Account not found on server.");
         currentUser = null;
         document.getElementById("nav-signout").style.display = "none";
-        
-        // Wipe Data
+
         appState = {};
         localStorage.removeItem("hq_workout_state");
-        
-        // Clear Inputs
+
         document.getElementById("auth-username").value = "";
         document.getElementById("auth-password").value = "";
-        
-        // Show Login with Error
+
         document.getElementById("auth-modal").classList.add("show");
         showAuthError("Session expired or account deleted. Please sign in.");
       }
 
       async function loadFromSupabase() {
+        if (!currentUser) {
+          document.getElementById("auth-modal").classList.add("show");
+          return;
+        }
+
         try {
           const { data, error } = await supabaseClient
             .from("user_data")
@@ -2959,17 +3180,21 @@
           const localSaved = localStorage.getItem("hq_workout_state");
           const localData = localSaved ? JSON.parse(localSaved) : null;
 
+          // 2. Scenario: Cloud Data Exists -> Load it
           if (data && data.app_state && Object.keys(data.app_state).length > 0) {
-            // Cloud Data Exists
             appState = { ...appState, ...data.app_state };
             localStorage.setItem("hq_workout_state", JSON.stringify(appState));
             initAppAfterLoad();
-          } else if (localData && localData.onboarded) {
-            // No cloud data, but user has old local data! Trigger migration.
+            document.getElementById("auth-modal").classList.remove("show");
+          } 
+          // 3. Scenario: New Cloud Account + Old Local Data -> Migrate
+          else if (localData && localData.onboarded) {
             appState = { ...appState, ...localData };
             document.getElementById("migrate-modal").classList.add("show");
-          } else {
-            // 🚨 BUG FIX: Initialize empty state for new user so initAppAfterLoad doesn't crash
+            document.getElementById("auth-modal").classList.remove("show");
+          } 
+          // 4. Scenario: Brand New User -> Initialize Default
+          else {
             appState = {
               onboarded: false,
               name: "",
@@ -2983,11 +3208,13 @@
               personalRecords: {},
             };
             initAppAfterLoad();
+            document.getElementById("auth-modal").classList.remove("show");
           }
         } catch (error) {
           console.error("Cloud load error:", error);
-          loadLocalState();
-          initAppAfterLoad();
+          // 🚨 FIX: Do NOT load local state here. 
+          // If auth fails or DB fails, keep them on the login screen.
+          // Optional: showToast("⚠️ Connection failed. Retrying...");
         }
       }
 
@@ -3063,7 +3290,7 @@
       function togglePassword() {
         const input = document.getElementById("auth-password");
         const icon = document.getElementById("eye-icon");
-        
+
         if (input.type === "password") {
           input.type = "text";
           icon.src = "eye2.png"; // Shows when password is visible
@@ -3077,21 +3304,29 @@
 
       async function handleAuth(action) {
         // 1. Get and clean inputs
-        const rawUsername = document.getElementById("auth-username").value.trim().toLowerCase();
+        const rawUsername = document
+          .getElementById("auth-username")
+          .value.trim()
+          .toLowerCase();
         const password = document.getElementById("auth-password").value;
 
         // 2. Basic Validation
-        if (!rawUsername || !password) return showAuthError("Username and password required.");
-        if (password.length < 6) return showAuthError("Password must be at least 6 characters.");
+        if (!rawUsername || !password)
+          return showAuthError("Username and password required.");
+        if (password.length < 6)
+          return showAuthError("Password must be at least 6 characters.");
 
         const email = `${rawUsername}@calithex.local`;
 
         if (action === "signup") {
           showAuthError("Checking availability...");
-          
-          const { data: isTaken, error } = await supabaseClient.rpc('check_if_user_exists', { 
-            email_check: email 
-          });
+
+          const { data: isTaken, error } = await supabaseClient.rpc(
+            "check_if_user_exists",
+            {
+              email_check: email,
+            },
+          );
 
           if (error) {
             console.error("RPC Error:", error);
@@ -3101,20 +3336,28 @@
           }
 
           showAuthError(""); // Clear "Checking..." text
-          document.getElementById("confirm-username-display").textContent = rawUsername;
-          document.getElementById("confirm-password-display").textContent = password;
+          document.getElementById("confirm-username-display").textContent =
+            rawUsername;
+          document.getElementById("confirm-password-display").textContent =
+            password;
           pendingSignUp = { email, password };
           document.getElementById("signup-confirm-modal").classList.add("show");
           return;
         }
 
-        executeAuthCall('signin', email, password);
+        executeAuthCall("signin", email, password);
       }
 
       async function executeSignUp() {
-        document.getElementById("signup-confirm-modal").classList.remove("show");
+        document
+          .getElementById("signup-confirm-modal")
+          .classList.remove("show");
         if (pendingSignUp) {
-          executeAuthCall('signup', pendingSignUp.email, pendingSignUp.password);
+          executeAuthCall(
+            "signup",
+            pendingSignUp.email,
+            pendingSignUp.password,
+          );
           pendingSignUp = null;
         }
       }
@@ -3125,8 +3368,10 @@
         const subEl = document.getElementById("transfer-sub");
 
         showAuthError("");
-        msgEl.textContent = action === "signup" ? "Creating Account..." : "Authenticating...";
-        subEl.textContent = action === "signup" ? "Securing your vault" : "Verifying credentials";
+        msgEl.textContent =
+          action === "signup" ? "Creating Account..." : "Authenticating...";
+        subEl.textContent =
+          action === "signup" ? "Securing your vault" : "Verifying credentials";
         overlay.classList.add("show");
 
         let error;
@@ -3137,7 +3382,10 @@
             error.message = "Username already taken. Try another or Sign In.";
           }
         } else {
-          const res = await supabaseClient.auth.signInWithPassword({ email, password });
+          const res = await supabaseClient.auth.signInWithPassword({
+            email,
+            password,
+          });
           error = res.error;
           if (error && error.message.includes("Invalid login")) {
             error.message = "Incorrect username or password.";
@@ -3152,9 +3400,9 @@
           subEl.textContent = "Loading your programme...";
           document.getElementById("auth-modal").classList.remove("show");
           document.getElementById("auth-error").textContent = "";
-          
+
           await loadState();
-          
+
           setTimeout(() => overlay.classList.remove("show"), 600);
         }
       }
@@ -3186,7 +3434,7 @@
 
       function discardLocalData() {
         document.getElementById("migrate-modal").classList.remove("show");
-        // Reset appState to empty. The saveState function will overwrite 
+        // Reset appState to empty. The saveState function will overwrite
         // the old local storage automatically when the app initializes.
         appState = {
           onboarded: false,
@@ -3256,27 +3504,38 @@
         }
 
         // 1. Close input modal
-        document.getElementById("change-password-modal").classList.remove("show");
-        
+        document
+          .getElementById("change-password-modal")
+          .classList.remove("show");
+
         // 2. Store temporarily and Show Confirmation Modal
         pendingNewPassword = newPass;
-        document.getElementById("confirm-new-pass-display").textContent = newPass;
+        document.getElementById("confirm-new-pass-display").textContent =
+          newPass;
         document.getElementById("password-confirm-modal").classList.add("show");
       }
 
       async function finalizePasswordChange() {
-        document.getElementById("password-confirm-modal").classList.remove("show");
+        document
+          .getElementById("password-confirm-modal")
+          .classList.remove("show");
         showToast("⏳", "Updating password...");
 
         const { data, error } = await supabaseClient.auth.updateUser({
-          password: pendingNewPassword
+          password: pendingNewPassword,
         });
 
         pendingNewPassword = ""; // Clear memory
 
         if (error) {
           showToast("❌", "Error: " + error.message);
-          setTimeout(() => document.getElementById("change-password-modal").classList.add("show"), 500);
+          setTimeout(
+            () =>
+              document
+                .getElementById("change-password-modal")
+                .classList.add("show"),
+            500,
+          );
         } else {
           showToast("✅", "Password updated successfully.");
         }
@@ -3411,11 +3670,14 @@
 
       function executeSaveSettings() {
         // 1. Close Modals
-        document.getElementById("settings-confirm-modal").classList.remove("show");
+        document
+          .getElementById("settings-confirm-modal")
+          .classList.remove("show");
         document.getElementById("settings-modal").classList.remove("show");
 
         // 2. Capture Values
-        const nameVal = document.getElementById("setup-name").value.trim() || "Athlete";
+        const nameVal =
+          document.getElementById("setup-name").value.trim() || "Athlete";
         const splitVal = document.getElementById("setup-split").value;
 
         // 3. Update State
@@ -3437,12 +3699,12 @@
         appState.onboarded = true;
         sessionBaseline = {}; // Force fresh snapshot
         saveState();
-        
+
         initUI(); // Re-render the app
-        
+
         showToast(
           "🔄",
-          `<strong>Programme Re-Initialized.</strong><br>Split and exercises updated.`
+          `<strong>Programme Re-Initialized.</strong><br>Split and exercises updated.`,
         );
       }
       function forceReset() {
@@ -4064,13 +4326,17 @@
           .flat()
           .find((e) => e.id === exId);
         const inp = document.getElementById(`inp-${exId}-${setIdx}`);
-        const val = parseInt(inp.value);
 
         appState.reps[exId][setIdx] = inp.value;
 
         updateRepProgress(exId, ex.sets, color);
         updateDailyVolume();
-        saveState(true);
+
+        clearTimeout(saveTimer);
+
+        saveTimer = setTimeout(() => {
+          saveState(true);
+        }, 1000);
       }
 
       function updateDailyVolume() {
@@ -4167,10 +4433,14 @@
               if (!parsed.onboarded) throw new Error("Invalid backup file");
 
               // Data Age Check
-              const getLatestDate = (state) => Object.keys(state.history || {}).sort().pop() || "";
+              const getLatestDate = (state) =>
+                Object.keys(state.history || {})
+                  .sort()
+                  .pop() || "";
               const currentLatest = getLatestDate(appState);
               const importLatest = getLatestDate(parsed);
-              const isOlder = currentLatest && importLatest && currentLatest > importLatest;
+              const isOlder =
+                currentLatest && importLatest && currentLatest > importLatest;
 
               // Store data temporarily
               pendingImportData = parsed;
@@ -4182,23 +4452,29 @@
 
               if (isOlder) {
                 titleEl.innerHTML = "⚠️ Older Backup Detected";
-                msgEl.innerHTML = "The backup you are trying to import is <strong>OLDER</strong> than your current progress!<br><br>If you continue, you will lose your recent logs. Are you absolutely sure you want to overwrite your current data?";
+                msgEl.innerHTML =
+                  "The backup you are trying to import is <strong>OLDER</strong> than your current progress!<br><br>If you continue, you will lose your recent logs. Are you absolutely sure you want to overwrite your current data?";
                 btnEl.textContent = "Yes, Downgrade";
                 btnEl.style.background = "var(--push)";
                 btnEl.style.color = "#000";
               } else {
                 titleEl.innerHTML = "Overwrite Data?";
-                msgEl.innerHTML = "This will overwrite your current programme with the backup file.<br><br>Continue?";
+                msgEl.innerHTML =
+                  "This will overwrite your current programme with the backup file.<br><br>Continue?";
                 btnEl.textContent = "Yes, Import";
                 btnEl.style.background = "var(--gold)";
                 btnEl.style.color = "var(--bg)";
               }
 
               // Show Modal
-              document.getElementById("import-confirm-modal").classList.add("show");
-
+              document
+                .getElementById("import-confirm-modal")
+                .classList.add("show");
             } catch (err) {
-              showToast("❌", `<strong>Import failed.</strong><br>File doesn't look right. Use a valid backup.`);
+              showToast(
+                "❌",
+                `<strong>Import failed.</strong><br>File doesn't look right. Use a valid backup.`,
+              );
             }
           };
           reader.readAsText(file);
@@ -4208,13 +4484,18 @@
 
       function executeImport() {
         if (!pendingImportData) return;
-        
-        // Hide modal
-        document.getElementById("import-confirm-modal").classList.remove("show");
 
-        const IMPORT_MSGS =[["Hold on tight...", "Reading backup file"],
-          ["Decrypting your gains...", "Parsing data"],["Restoring progression levels...", "Rebuilding variations"],
-          ["Reloading your history...", "Almost there"],[`You're back.`, "Welcome home"],
+        // Hide modal
+        document
+          .getElementById("import-confirm-modal")
+          .classList.remove("show");
+
+        const IMPORT_MSGS = [
+          ["Hold on tight...", "Reading backup file"],
+          ["Decrypting your gains...", "Parsing data"],
+          ["Restoring progression levels...", "Rebuilding variations"],
+          ["Reloading your history...", "Almost there"],
+          [`You're back.`, "Welcome home"],
         ];
 
         // Run the cool loading animation
@@ -4223,11 +4504,14 @@
           saveState();
           document.getElementById("settings-modal").classList.remove("show");
           initUI();
-          showToast("✅", `<strong>Welcome back, ${pendingImportData.name || "Athlete"}.</strong><br>Data successfully restored and synced.`);
+          showToast(
+            "✅",
+            `<strong>Welcome back, ${pendingImportData.name || "Athlete"}.</strong><br>Data successfully restored and synced.`,
+          );
           pendingImportData = null; // Clear memory
         });
       }
-      
+
       function showTransferOverlay(messages, interval, onComplete) {
         const overlay = document.getElementById("transfer-overlay");
         const msgEl = document.getElementById("transfer-msg");
@@ -4795,17 +5079,19 @@
       // ============================================================
       function openEditName() {
         // Only allow edits if the user has already onboarded
-        if (!appState.onboarded) return; 
+        if (!appState.onboarded) return;
         document.getElementById("new-display-name").value = appState.name || "";
         document.getElementById("edit-name-modal").classList.add("show");
       }
 
       function saveNewName() {
-        const newName = document.getElementById("new-display-name").value.trim();
+        const newName = document
+          .getElementById("new-display-name")
+          .value.trim();
         if (newName) {
           appState.name = newName;
           saveState(true); // Save to Supabase and LocalStorage
-          updateHero();    // Instantly update the UI
+          updateHero(); // Instantly update the UI
           document.getElementById("edit-name-modal").classList.remove("show");
           showToast("✅", "Display name updated.");
         }
