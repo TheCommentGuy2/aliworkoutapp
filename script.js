@@ -1490,12 +1490,15 @@ function buildExerciseList(day) {
       const val = appState.reps[ex.id][i] || "";
       const thr = varType === "hold" ? 60 : 50;
       const maxed = val !== "" && Number(val) >= thr ? "maxed" : "";
+
+      const isDisabled = isDayComplete || !isTodayBlock;
+
       setsHTML += `
         <div class="set-input-wrap">
           <div class="set-num">SET ${i + 1}</div>
           <input type="number" class="rep-input ${maxed}" id="inp-${ex.id}-${i}"
             placeholder="${varType === "hold" ? "s" : "-"}"
-            ${isDayComplete ? "disabled" : ""}
+            ${isDisabled ? "disabled" : ""}
             oninput="handleRepInput('${ex.id}',${i},'${ex.color}')"
             value="${val}">
         </div>`;
@@ -1571,7 +1574,7 @@ function buildExerciseList(day) {
             <div class="progress-fill" id="fill-${ex.id}" style="width:0%;background:${colorVar}"></div>
           </div>
           <div class="progress-label" id="prog-label-${ex.id}">
-            ${isDayComplete ? "Session locked ✓" : "Enter reps above"}
+            ${isDayComplete ? "Session locked ✓" : !isTodayBlock ? "Scheduled for another day" : "Enter reps above"}
           </div>
         </div>
       </div>
@@ -1612,13 +1615,22 @@ function updateRepProgress(exId, sets, color) {
           ? "var(--gold)"
           : `var(--${color})`;
   }
+
   if (label && !appState.completed[getLocalDateStr()]) {
-    const unit = getVarType(exId) === "hold" ? "s" : "reps";
-    const unitLabel = getVarType(exId) === "hold" ? "Best hold" : "Best set";
-    label.textContent =
-      total > 0
-        ? `${unitLabel}: ${bestSet}${unit} · Total: ${total}${unit}${pct >= 100 ? " — Ready to level up ✓" : ""}`
-        : `Enter ${unit} above`;
+    // Check if this exercise belongs to today's block
+    const todayType = getSchedule()[getLocalTime().getDay()].type;
+    const isTodayBlock = todayType === color;
+
+    if (!isTodayBlock) {
+      label.textContent = "Scheduled for another day";
+    } else {
+      const unit = getVarType(exId) === "hold" ? "s" : "reps";
+      const unitLabel = getVarType(exId) === "hold" ? "Best hold" : "Best set";
+      label.textContent =
+        total > 0
+          ? `${unitLabel}: ${bestSet}${unit} · Total: ${total}${unit}${pct >= 100 ? " — Ready to level up ✓" : ""}`
+          : `Enter ${unit} above`;
+    }
   }
 
   vals.forEach((v, i) => {
