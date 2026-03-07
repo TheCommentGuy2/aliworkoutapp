@@ -1288,6 +1288,9 @@ function confirmFinish() {
 // ============================================================
 // PR TRACKER
 // ============================================================
+// ============================================================
+// PR TRACKER & TIMELINE
+// ============================================================
 function openPRModal() {
   const prs = appState.personalRecords || {};
   const keys = Object.keys(prs);
@@ -1295,26 +1298,62 @@ function openPRModal() {
 
   if (keys.length === 0) {
     list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.6;">
-      <img src="icons/best.png" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:0.3;">
-      <strong style="color:var(--dim);display:block;margin-bottom:6px">No records yet</strong>
-      Start logging reps to track your personal bests here.
-    </div>`;
+            <img src="icons/best.png" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:0.3;">
+            <strong style="color:var(--dim);display:block;margin-bottom:6px">No records yet</strong>
+            Start logging reps to track your personal bests here.
+          </div>`;
   } else {
     const val = (k) => prs[k]?.value ?? prs[k];
     const sorted = keys.sort((a, b) => val(b) - val(a));
-    list.innerHTML = sorted
-      .map(
-        (k) => `
-      <div style="display:flex;justify-content:space-between;align-items:center;
-                  padding:14px 0;border-bottom:1px solid var(--border);">
-        <span style="font-size:14px;color:var(--text);line-height:1.3">${k}</span>
-        <span style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;
-                     color:var(--gold);white-space:nowrap;margin-left:12px">
-          ${prs[k]?.value ?? prs[k]} <span style="font-size:11px;color:var(--muted);font-family:'Outfit',sans-serif">${prs[k]?.unit ?? "reps"}</span>
-        </span>
-      </div>`,
-      )
-      .join("");
+
+    let html = "";
+    const histDates = Object.keys(appState.history || {}).sort();
+
+    sorted.forEach((k) => {
+      const currentMax = val(k);
+      const unit = prs[k]?.unit ?? "reps";
+
+      // Generate Timeline by parsing history
+      let progression = [];
+      let currentTrackedMax = 0;
+
+      histDates.forEach((date) => {
+        const entry = appState.history[date];
+        if (entry && typeof entry === "object" && entry.exercises) {
+          Object.values(entry.exercises).forEach((ex) => {
+            if (ex.variation === k) {
+              const sessionMax = Math.max(...ex.sets);
+              if (sessionMax > currentTrackedMax) {
+                currentTrackedMax = sessionMax;
+                const d = new Date(date);
+                const dStr = `${d.getDate()} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getMonth()]}`;
+                progression.push(`${currentTrackedMax}${unit} (${dStr})`);
+              }
+            }
+          });
+        }
+      });
+
+      const timelineText =
+        progression.length > 1
+          ? `<span style="color:var(--legs)">📈 Progression:</span> ${progression.join(" <span style='color:var(--border)'>→</span> ")}`
+          : `First recorded highest: ${currentMax}${unit}`;
+
+      html += `
+              <div style="padding:16px 0;border-bottom:1px solid var(--border);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <span style="font-size:15px;color:var(--text);font-weight:600;line-height:1.3">${k}</span>
+                  <span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--gold);white-space:nowrap;margin-left:12px">
+                    ${currentMax} <span style="font-size:11px;color:var(--muted);font-family:'Outfit',sans-serif">${unit}</span>
+                  </span>
+                </div>
+                <div style="font-size:11px;color:var(--dim);line-height:1.5;">
+                  ${timelineText}
+                </div>
+              </div>`;
+    });
+
+    list.innerHTML = html;
   }
   document.getElementById("pr-modal").classList.add("show");
 }
@@ -2618,7 +2657,11 @@ function initUI() {
   const sess = getSchedule()[today];
   const isComplete = !!appState.completed[todayStr];
 
-  checkMissedSessions();
+  const isShowingSummary = checkWeeklySummary();
+  if (!isShowingSummary) {
+    checkMissedSessions();
+  }
+  checkWeeklySummary();
   setTimeout(() => {
     if (isComplete) {
       showToast(
@@ -2710,6 +2753,76 @@ function checkMissedSessions() {
   }
 
   document.getElementById("missed-modal").classList.add("show");
+}
+
+// ============================================================
+// WEEKLY DEBRIEF SUMMARY
+// ============================================================
+function checkWeeklySummary() {
+  if (!appState.onboarded) return false;
+
+  const today = getLocalTime();
+  // 0 = Sunday. The debrief only triggers on Sundays.
+  if (today.getDay() !== 0) return false;
+
+  const todayStr = getLocalDateStr();
+  // If they already acknowledged it today, skip.
+  if (appState.lastWeeklySummary === todayStr) return false;
+
+  let vol = 0;
+  let sessions = 0;
+  let missed = 0;
+
+  // Scan the last 7 days
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today.getTime() - i * 86400000);
+    const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    if (appState.completed?.[ds]) {
+      sessions++;
+      const entry = appState.history?.[ds];
+      if (entry && typeof entry === "object") vol += entry.total || 0;
+    } else {
+      const histEntry = appState.history?.[ds];
+      const splitUsed =
+        typeof histEntry === "object" && histEntry?.split
+          ? histEntry.split
+          : appState.split;
+      const sched = (splitUsed === "6day" ? SCHEDULE_6DAY : SCHEDULE_DEFAULT)[
+        d.getDay()
+      ]?.type;
+      if (sched && sched !== "rest" && ds < todayStr) missed++;
+    }
+  }
+
+  // Build the UI
+  document.getElementById("weekly-summary-stats").innerHTML = `
+          <div class="tac-card" style="text-align: center;">
+            <div class="tac-card-label">7-Day Volume</div>
+            <div style="font-size:24px;font-weight:800;color:var(--text)">${vol} <span style="font-size:11px;color:var(--muted)">reps</span></div>
+          </div>
+          <div class="tac-card" style="text-align: center;">
+            <div class="tac-card-label">Clearance</div>
+            <div style="font-size:24px;font-weight:800;color:var(--legs)">${sessions} <span style="font-size:11px;color:var(--muted)">sessions</span></div>
+          </div>
+          <div class="tac-card" style="text-align: center;">
+            <div class="tac-card-label">Deficit</div>
+            <div style="font-size:24px;font-weight:800;color:${missed > 0 ? "var(--push)" : "var(--muted)"}">${missed} <span style="font-size:11px;color:var(--muted)">skips</span></div>
+          </div>
+        `;
+
+  document.getElementById("weekly-summary-modal").classList.add("show");
+  return true; // 🚨 Tells the app the modal is currently open
+}
+
+function closeWeeklySummary() {
+  appState.lastWeeklySummary = getLocalDateStr();
+  saveState(true);
+  document.getElementById("weekly-summary-modal").classList.remove("show");
+
+  setTimeout(() => {
+    checkMissedSessions();
+  }, 400);
 }
 
 function acknowledgeMissed() {
