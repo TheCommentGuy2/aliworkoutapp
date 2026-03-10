@@ -1407,6 +1407,23 @@
       </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- OVERRIDE REST DAY MODAL                                      -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="override-modal">
+      <div class="modal-box" style="max-width: 420px; text-align: center">
+        <div class="modal-header">⚠️ Override Rest Day?</div>
+        <div class="modal-sub" style="text-align: left; background: rgba(255, 209, 102, 0.08); padding: 16px; border-radius: 8px; border: 1px solid rgba(255, 209, 102, 0.2); margin-bottom: 20px; color: var(--text);">
+          Rest is crucial for central nervous system recovery and muscle growth.<br><br>
+          It is highly recommended to let your body recover today, <strong>unless you are doing this to make up for a missed session.</strong>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <button class="g-btn" style="flex: 1; padding: 12px" onclick="closeOverrideModal()">Cancel</button>
+          <button class="save-btn" style="flex: 1; margin: 0; background: var(--gold); color: var(--bg);" onclick="executeOverride()">Yes, Unlock Protocol</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MISSED SESSIONS MODAL -->
     <div class="modal-overlay" id="missed-modal">
       <div class="modal-box" style="max-width: 440px">

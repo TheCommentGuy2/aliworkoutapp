@@ -322,6 +322,7 @@ let appState = {
   nfiBaselines: {},
   sessionBaseline: {},
   upgradedExercises: {},
+  override: null,
 };
 
 function getLocalTime() {
@@ -448,6 +449,7 @@ async function loadFromSupabase() {
         nfiBaselines: {},
         sessionBaseline: {},
         upgradedExercises: {},
+        override: null,
       };
       initAppAfterLoad();
       document.getElementById("auth-modal").classList.remove("show");
@@ -466,6 +468,8 @@ function initAppAfterLoad() {
     appState.date = todayStr;
     appState.reps = {};
     appState.sessionBaseline = {};
+    appState.upgradedExercises = {};
+    appState.override = null; //
     saveState(true);
   }
 
@@ -688,12 +692,46 @@ function discardLocalData() {
     nfiBaselines: {},
     sessionBaseline: {},
     upgradedExercises: {},
+    override: null,
   };
   initAppAfterLoad();
 
   showToast(
     "<img src='icons/bin.png' style='width:24px;height:24px;'>",
     "<strong>Local guest data discarded.</strong><br>Starting fresh.",
+  );
+}
+
+// ============================================================
+// TACTICAL OVERRIDE LOGIC
+// ============================================================
+let pendingOverride = null;
+
+function requestOverride(dayType) {
+  pendingOverride = dayType;
+  document.getElementById("override-modal").classList.add("show");
+}
+
+function closeOverrideModal() {
+  pendingOverride = null;
+  document.getElementById("override-modal").classList.remove("show");
+}
+
+function executeOverride() {
+  const todayStr = getLocalDateStr();
+  appState.override = { date: todayStr, type: pendingOverride };
+  saveState();
+  closeOverrideModal();
+
+  // Re-render everything to unlock the inputs
+  initUI();
+
+  // Open the block they just unlocked
+  if (!blockOpen[pendingOverride]) toggleBlock(pendingOverride);
+
+  showToast(
+    "🔓",
+    `<strong>Protocol Unlocked</strong><br>${pendingOverride.charAt(0).toUpperCase() + pendingOverride.slice(1)} Day activated.`,
   );
 }
 
@@ -980,6 +1018,7 @@ async function executeReset() {
     nfiBaselines: {},
     sessionBaseline: {},
     upgradedExercises: {},
+    override: null,
   };
 
   appState.sessionBaseline = {};
@@ -1208,7 +1247,11 @@ function confirmFinish() {
   });
 
   const today = getLocalTime().getDay();
-  const type = getSchedule()[today].type;
+  const baseType = getSchedule()[today].type;
+  const type =
+    appState.override && appState.override.date === todayStr
+      ? appState.override.type
+      : baseType;
 
   appState.completed[todayStr] = true;
   appState.completedVariations = appState.completedVariations || {};
@@ -1370,11 +1413,24 @@ function updateHero() {
   document.getElementById("split-display").textContent =
     appState.split === "6day" ? "P·P·L·P·P·L·R" : "P·R·P·L·R·R";
 
+  const baseType = sess.type;
+  const activeType =
+    appState.override && appState.override.date === todayStr
+      ? appState.override.type
+      : baseType;
+
   const sessEl = document.getElementById("today-session");
-  sessEl.textContent = sess.label;
-  sessEl.className =
-    sess.type !== "rest" ? `status-val ${sess.type}` : "status-val";
-  if (sess.type === "rest") sessEl.style.color = "var(--muted)";
+  if (activeType !== baseType) {
+    sessEl.textContent =
+      activeType.charAt(0).toUpperCase() + activeType.slice(1) + " (Make-up)";
+    sessEl.className = `status-val ${activeType}`;
+    sessEl.style.color = "var(--text)";
+  } else {
+    sessEl.textContent = sess.label;
+    sessEl.className =
+      sess.type !== "rest" ? `status-val ${sess.type}` : "status-val";
+    if (sess.type === "rest") sessEl.style.color = "var(--muted)";
+  }
 
   let greeting = getTimeGreeting(h);
   let chipText = `${DAYS[day]} · Active`;
@@ -1385,7 +1441,8 @@ function updateHero() {
     const tip = DONE_TIPS[Math.floor(Math.random() * DONE_TIPS.length)];
     document.getElementById("hero-tagline").innerHTML =
       `<em>Mission accomplished.</em> ${tip}`;
-  } else if (sess.type === "rest") {
+  } else if (activeType === "rest") {
+    // 🚨 Changed sess.type to activeType
     greeting = "Recovery mode,";
     chipText = `${DAYS[day]} · Rest`;
     const tip = REST_TIPS[Math.floor(Math.random() * REST_TIPS.length)];
@@ -1439,7 +1496,15 @@ function buildExerciseList(day) {
 
   const todayStr = getLocalDateStr();
   const isDayComplete = !!appState.completed[todayStr];
-  const isTodayBlock = getSchedule()[getLocalTime().getDay()].type === day;
+
+  // 🚨 CHECK FOR OVERRIDE
+  const baseType = getSchedule()[getLocalTime().getDay()].type;
+  const activeType =
+    appState.override && appState.override.date === todayStr
+      ? appState.override.type
+      : baseType;
+  const isTodayBlock = activeType === day;
+  const isRestDay = baseType === "rest";
 
   EXERCISES[day].forEach((ex) => {
     const row = document.createElement("div");
@@ -1589,6 +1654,13 @@ function buildExerciseList(day) {
     fin.innerHTML = `<button class="finish-workout-btn" onclick="openFinishModal()">Finish & Lock Session</button>`;
     list.appendChild(fin);
   }
+  // 🚨 NEW: Show Override button if it's a Rest Day and the block isn't active
+  else if (!isTodayBlock && isRestDay && !isDayComplete) {
+    const over = document.createElement("div");
+    over.className = "finish-area";
+    over.innerHTML = `<button class="finish-workout-btn" style="background:transparent; border:1px dashed var(--muted); color:var(--muted)" onclick="requestOverride('${day}')">🔓 Override Rest & Unlock ${day.charAt(0).toUpperCase() + day.slice(1)}</button>`;
+    list.appendChild(over);
+  }
 }
 
 function updateRepProgress(exId, sets, color) {
@@ -1618,8 +1690,13 @@ function updateRepProgress(exId, sets, color) {
 
   if (label && !appState.completed[getLocalDateStr()]) {
     // Check if this exercise belongs to today's block
-    const todayType = getSchedule()[getLocalTime().getDay()].type;
-    const isTodayBlock = todayType === color;
+    const baseType = getSchedule()[getLocalTime().getDay()].type;
+    const todayStr = getLocalDateStr();
+    const activeType =
+      appState.override && appState.override.date === todayStr
+        ? appState.override.type
+        : baseType;
+    const isTodayBlock = activeType === color; // <--- Replace 'todayType' with 'activeType'
 
     if (!isTodayBlock) {
       label.textContent = "Scheduled for another day";
@@ -1664,7 +1741,11 @@ function handleRepInput(exId, setIdx, color) {
 function updateDailyVolume() {
   const todayStr = getLocalDateStr();
   const today = getLocalTime().getDay();
-  const type = getSchedule()[today].type;
+  const baseType = getSchedule()[today].type;
+  const type =
+    appState.override && appState.override.date === todayStr
+      ? appState.override.type
+      : baseType;
 
   let total = 0;
   const exercises = {};
@@ -2613,7 +2694,11 @@ function initUI() {
 
   updateHero();
   buildWeekStrip();
-  const todayType = getSchedule()[getLocalTime().getDay()].type;
+  const baseType = getSchedule()[getLocalTime().getDay()].type;
+  const todayType =
+    appState.override && appState.override.date === todayStr
+      ? appState.override.type
+      : baseType;
   const buildNow = todayType && todayType !== "rest" ? todayType : "push";
   buildExerciseList(buildNow);
   EXERCISES[buildNow].forEach((ex) =>
