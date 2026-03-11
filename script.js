@@ -44,6 +44,9 @@ const PROG_HORIZ_PUSH = [
 ];
 const PROG_SHOULDER = [
   { name: "Pike Hold (static)", type: "hold" },
+  { name: "Elevated Pike Hold", type: "hold" },
+  { name: "Pike Hold Shoulder Taps", type: "reps" },
+  { name: "Partial Pike Push-ups", type: "reps" },
   { name: "Pike Push-ups", type: "reps" },
   { name: "Elevated Pike Push-ups", type: "reps" },
   { name: "Wall Handstand Hold", type: "hold" },
@@ -322,7 +325,8 @@ let appState = {
   nfiBaselines: {},
   sessionBaseline: {},
   upgradedExercises: {},
-  override: null,
+  overrides: [],       // replaces single 'override' — array of {date, type, completed}
+  override: null,      // kept for legacy reads only — always null going forward
 };
 
 function getLocalTime() {
@@ -336,6 +340,50 @@ function getLocalDateStr() {
 
 function getSchedule() {
   return appState.split === "6day" ? SCHEDULE_6DAY : SCHEDULE_DEFAULT;
+}
+
+// ============================================================
+// OVERRIDE HELPERS (multi-session support)
+// ============================================================
+function getTodayOverrides() {
+  const todayStr = getLocalDateStr();
+  if (!appState.overrides) appState.overrides = [];
+  return appState.overrides.filter((o) => o.date === todayStr);
+}
+
+// Returns the single currently-unlocked-but-not-yet-completed override type, or null
+function getActiveOverrideType() {
+  const todayStr = getLocalDateStr();
+  if (!appState.overrides) return null;
+  const active = appState.overrides.find(
+    (o) => o.date === todayStr && !o.completed
+  );
+  return active ? active.type : null;
+}
+
+// Returns true if a type has been unlocked today (completed or active)
+function isTypeOverriddenToday(type) {
+  const todayStr = getLocalDateStr();
+  if (!appState.overrides) return false;
+  return appState.overrides.some((o) => o.date === todayStr && o.type === type);
+}
+
+// Returns true if a type override was completed (locked) today
+function isTypeOverrideCompleted(type) {
+  const todayStr = getLocalDateStr();
+  if (!appState.overrides) return false;
+  return appState.overrides.some(
+    (o) => o.date === todayStr && o.type === type && o.completed
+  );
+}
+
+// Migrate legacy single override to array format on load
+function migrateLegacyOverride() {
+  if (appState.override && !appState.overrides) {
+    appState.overrides = [{ ...appState.override, completed: false }];
+    appState.override = null;
+  }
+  if (!appState.overrides) appState.overrides = [];
 }
 
 // Listen for Auth changes continuously
@@ -449,6 +497,7 @@ async function loadFromSupabase() {
         nfiBaselines: {},
         sessionBaseline: {},
         upgradedExercises: {},
+        overrides: [],
         override: null,
       };
       initAppAfterLoad();
@@ -464,12 +513,14 @@ function initAppAfterLoad() {
   let isFirstRun = !appState.onboarded;
 
   const todayStr = getLocalDateStr();
+  migrateLegacyOverride();
   if (appState.date !== todayStr) {
     appState.date = todayStr;
     appState.reps = {};
     appState.sessionBaseline = {};
     appState.upgradedExercises = {};
-    appState.override = null; //
+    appState.override = null;
+    appState.overrides = [];
     saveState(true);
   }
 
@@ -692,6 +743,7 @@ function discardLocalData() {
     nfiBaselines: {},
     sessionBaseline: {},
     upgradedExercises: {},
+    overrides: [],
     override: null,
   };
   initAppAfterLoad();
@@ -719,14 +771,34 @@ function closeOverrideModal() {
 
 function executeOverride() {
   const todayStr = getLocalDateStr();
-  appState.override = { date: todayStr, type: pendingOverride };
+
+  // Block if there is already an unlocked-but-not-yet-finished override session
+  const activeType = getActiveOverrideType();
+  if (activeType) {
+    closeOverrideModal();
+    showToast(
+      "⚠️",
+      `<strong>Finish your active ${activeType.charAt(0).toUpperCase() + activeType.slice(1)} session first.</strong><br>Lock it before unlocking another block.`,
+    );
+    return;
+  }
+
+  // Don't allow the same type twice
+  if (isTypeOverriddenToday(pendingOverride)) {
+    closeOverrideModal();
+    showToast("⚠️", `<strong>${pendingOverride.charAt(0).toUpperCase() + pendingOverride.slice(1)} already completed today.</strong>`);
+    return;
+  }
+
+  if (!appState.overrides) appState.overrides = [];
+  appState.overrides.push({ date: todayStr, type: pendingOverride, completed: false });
+  // keep legacy field null
+  appState.override = null;
+
   saveState();
   closeOverrideModal();
-
-  // Re-render everything to unlock the inputs
   initUI();
 
-  // Open the block they just unlocked
   if (!blockOpen[pendingOverride]) toggleBlock(pendingOverride);
 
   showToast(
@@ -1018,6 +1090,7 @@ async function executeReset() {
     nfiBaselines: {},
     sessionBaseline: {},
     upgradedExercises: {},
+    overrides: [],
     override: null,
   };
 
@@ -1071,19 +1144,39 @@ function resetToday() {
 
 function confirmResetToday() {
   const todayStr = getLocalDateStr();
-  const todayType = getSchedule()[getLocalTime().getDay()].type;
+  const baseType = getSchedule()[getLocalTime().getDay()].type;
+
+  // Determine what to reset: the active (in-progress) override, or the last completed override, or the scheduled session
+  const activeOverride = getActiveOverrideType(); // unlocked but not yet finished
+  const completedOverrides = (appState.overrides || []).filter(
+    (o) => o.date === todayStr && o.completed
+  );
+  const lastCompletedOverride = completedOverrides[completedOverrides.length - 1];
+
+  let resetType;
+  if (activeOverride) {
+    // There's an in-progress override — reset that
+    resetType = activeOverride;
+  } else if (lastCompletedOverride) {
+    // Reset the last completed override session
+    resetType = lastCompletedOverride.type;
+  } else {
+    // Reset the scheduled session
+    resetType = baseType !== "rest" ? baseType : null;
+  }
+
   const sessionPRs = appState.sessionPRs?.[todayStr];
 
-  // Capture varNames BEFORE any rollback happens (for PR rollback)
+  // Capture varNames BEFORE rollback
   const varNameSnapshot = {};
-  if (todayType !== "rest") {
-    EXERCISES[todayType].forEach((ex) => {
+  if (resetType) {
+    EXERCISES[resetType]?.forEach((ex) => {
       varNameSnapshot[ex.id] =
         appState.variations[ex.id] || ex.progressions[0].name;
     });
   }
 
-  // 🚨 BUG 2 FIX: Perfectly restore the day's original baseline
+  // Restore the session baseline variations
   if (
     appState.sessionBaseline &&
     Object.keys(appState.sessionBaseline).length > 0
@@ -1091,35 +1184,61 @@ function confirmResetToday() {
     Object.assign(appState.variations, appState.sessionBaseline);
   }
 
-  // Clean up all the temporary day trackers
-  if (appState.completedVariations)
-    delete appState.completedVariations[todayStr];
-  if (appState.upgradedExercises) delete appState.upgradedExercises[todayStr];
-  appState.nfiBaselines = {};
+  // Clean up temporary day trackers
+  if (appState.completedVariations) delete appState.completedVariations[todayStr];
 
-  // Now roll back PRs using the pre-rollback varNames
-  if (sessionPRs !== undefined) {
-    if (todayType !== "rest") {
-      EXERCISES[todayType].forEach((ex) => {
-        const varName = varNameSnapshot[ex.id];
-        if (sessionPRs[varName]) {
-          appState.personalRecords[varName] = sessionPRs[varName];
-        } else {
-          delete appState.personalRecords[varName];
-        }
-      });
-    }
-    delete appState.sessionPRs[todayStr];
+  // Only wipe upgradedExercises for the reset type, not all
+  if (appState.upgradedExercises?.[todayStr] && resetType) {
+    appState.upgradedExercises[todayStr] = appState.upgradedExercises[todayStr].filter(
+      (id) => !EXERCISES[resetType]?.some((ex) => ex.id === id)
+    );
   }
 
-  // Wipe today's reps
-  Object.values(EXERCISES)
-    .flat()
-    .forEach((ex) => {
+  appState.nfiBaselines = {};
+
+  // Roll back PRs for the reset session type
+  if (sessionPRs !== undefined && resetType) {
+    EXERCISES[resetType]?.forEach((ex) => {
+      const varName = varNameSnapshot[ex.id];
+      if (sessionPRs[varName]) {
+        appState.personalRecords[varName] = sessionPRs[varName];
+      } else {
+        delete appState.personalRecords[varName];
+      }
+    });
+    // Remove sessionPRs only for this type's exercises
+    if (resetType) {
+      EXERCISES[resetType]?.forEach((ex) => {
+        const varName = varNameSnapshot[ex.id];
+        delete appState.sessionPRs[todayStr][varName];
+      });
+    }
+  }
+
+  // Wipe reps for the reset type
+  if (resetType) {
+    EXERCISES[resetType]?.forEach((ex) => {
       appState.reps[ex.id] = Array(ex.sets).fill("");
     });
+  }
 
-  delete appState.completed[todayStr];
+  // Remove the override entry being reset (active or last completed)
+  if (activeOverride && appState.overrides) {
+    const idx = appState.overrides.findIndex(
+      (o) => o.date === todayStr && o.type === activeOverride && !o.completed
+    );
+    if (idx > -1) appState.overrides.splice(idx, 1);
+  } else if (lastCompletedOverride && appState.overrides) {
+    const idx = appState.overrides.findIndex(
+      (o) => o.date === todayStr && o.type === lastCompletedOverride.type && o.completed
+    );
+    if (idx > -1) appState.overrides.splice(idx, 1);
+  } else {
+    // Scheduled session reset — clear the completed flag
+    delete appState.completed[todayStr];
+  }
+
+  // Reset history for this type (remove the session's contribution)
   appState.history[todayStr] = { total: 0, type: null, exercises: {} };
 
   saveState();
@@ -1133,20 +1252,29 @@ function confirmResetToday() {
 // FINISH WORKOUT
 // ============================================================
 let pendingUpgrades = [];
+let pendingFinishType = null; // tracks which block type is being locked
 
-function openFinishModal() {
+function openFinishModal(dayType) {
   pendingUpgrades = [];
   let upgradeHTML = "";
-  let skippedExercises = []; // 🚨 NEW: Track missed exercises
+  let skippedExercises = [];
 
-  const today = getLocalTime().getDay();
-  const type = getSchedule()[today].type;
+  // dayType is passed from the Finish button — it knows which block it belongs to
+  const type = dayType || (() => {
+    const today = getLocalTime().getDay();
+    const baseType = getSchedule()[today].type;
+    const todayStr = getLocalDateStr();
+    const active = getActiveOverrideType();
+    return active || (baseType !== "rest" ? baseType : null);
+  })();
 
-  if (type !== "rest") {
+  // Store for use in confirmFinish
+  pendingFinishType = type;
+
+  if (type && type !== "rest") {
     EXERCISES[type].forEach((ex) => {
       const vals = appState.reps[ex.id] || [];
 
-      // 🚨 LOGIC: Check if exercise was skipped (all inputs empty or 0)
       const totalReps = vals.reduce((a, b) => a + (parseInt(b) || 0), 0);
       if (totalReps === 0) {
         skippedExercises.push(SLOT_LABELS[ex.id]?.label || ex.id);
@@ -1188,7 +1316,6 @@ function openFinishModal() {
 
   const sub = document.getElementById("finish-modal-sub");
 
-  // 🚨 DYNAMIC CONTENT: Warn about skips or show upgrades
   let warningHTML = "";
   if (skippedExercises.length > 0) {
     warningHTML = `
@@ -1228,13 +1355,13 @@ function confirmFinish() {
     Object.keys(appState.nfiBaselines).forEach((exId) => {
       appState.variations[exId] = appState.nfiBaselines[exId];
     });
-    appState.nfiBaselines = {}; // Clear them out
+    appState.nfiBaselines = {};
   }
 
   // 3. Track Upgrades
   const todayStr = getLocalDateStr();
   appState.upgradedExercises = appState.upgradedExercises || {};
-  appState.upgradedExercises[todayStr] = [];
+  if (!appState.upgradedExercises[todayStr]) appState.upgradedExercises[todayStr] = [];
 
   let upgradeCount = 0;
   pendingUpgrades.forEach((upg) => {
@@ -1246,41 +1373,69 @@ function confirmFinish() {
     }
   });
 
-  const today = getLocalTime().getDay();
-  const baseType = getSchedule()[today].type;
-  const type =
-    appState.override && appState.override.date === todayStr
-      ? appState.override.type
-      : baseType;
+  // 4. Determine session type — use pendingFinishType (set by openFinishModal)
+  const todayDay = getLocalTime().getDay();
+  const baseType = getSchedule()[todayDay].type;
+  const type = pendingFinishType || baseType;
+  pendingFinishType = null;
 
-  appState.completed[todayStr] = true;
+  // 5. Mark the override as completed (if this was an override session)
+  const isOverrideSession = baseType === "rest" || isTypeOverriddenToday(type);
+  if (isOverrideSession && appState.overrides) {
+    const overrideEntry = appState.overrides.find(
+      (o) => o.date === todayStr && o.type === type && !o.completed
+    );
+    if (overrideEntry) {
+      overrideEntry.completed = true;
+    }
+  } else {
+    // Scheduled session — mark day complete
+    appState.completed[todayStr] = true;
+  }
+
   appState.completedVariations = appState.completedVariations || {};
   appState.completedVariations[todayStr] = preUpgradeVariations;
 
-  // 4. Lock session type into rich history entry
-  if (type !== "rest") {
+  // 6. Lock session type into rich history entry
+  if (type && type !== "rest") {
     const existing = appState.history?.[todayStr];
-    appState.history[todayStr] = {
-      ...(typeof existing === "object" ? existing : { total: existing || 0 }),
-      type: type,
-      split: appState.split,
-    };
+    // For override sessions, accumulate into a sessions array in history
+    if (isOverrideSession && !(baseType !== "rest")) {
+      // Store per-session history so multiple override sessions don't overwrite each other
+      const existingObj = typeof existing === "object" ? existing : { total: existing || 0 };
+      if (!existingObj.sessions) existingObj.sessions = [];
+      existingObj.sessions.push({ type, total: (appState.reps ? Object.values(EXERCISES[type] || []).reduce((sum, ex) => {
+        return sum + (appState.reps[ex.id] || []).reduce((a, b) => a + (parseInt(b) || 0), 0);
+      }, 0) : 0) });
+      existingObj.total = (existingObj.total || 0) + (existingObj.sessions[existingObj.sessions.length - 1].total || 0);
+      existingObj.type = type; // last session type wins for graph colouring
+      existingObj.split = appState.split;
+      appState.history[todayStr] = existingObj;
+    } else {
+      appState.history[todayStr] = {
+        ...(typeof existing === "object" ? existing : { total: existing || 0 }),
+        type: type,
+        split: appState.split,
+      };
+    }
   }
 
-  // 5. Snapshot PRs for rollback
+  // 7. Snapshot PRs for rollback (merge with existing sessionPRs for multi-session days)
   appState.sessionPRs = appState.sessionPRs || {};
-  appState.sessionPRs[todayStr] = {};
-  if (type !== "rest") {
+  if (!appState.sessionPRs[todayStr]) appState.sessionPRs[todayStr] = {};
+  if (type && type !== "rest") {
     EXERCISES[type].forEach((ex) => {
       const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
       const prevPR = appState.personalRecords?.[varName];
-      if (prevPR) appState.sessionPRs[todayStr][varName] = prevPR;
+      if (prevPR && !appState.sessionPRs[todayStr][varName]) {
+        appState.sessionPRs[todayStr][varName] = prevPR;
+      }
     });
   }
 
-  // 6. Log New PRs
+  // 8. Log New PRs
   const newPRs = [];
-  if (type !== "rest") {
+  if (type && type !== "rest") {
     EXERCISES[type].forEach((ex) => {
       const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
       if (!appState.personalRecords) appState.personalRecords = {};
@@ -1303,6 +1458,13 @@ function confirmFinish() {
           }
         }
       });
+    });
+  }
+
+  // 9. Reset reps for this block so next override session starts clean
+  if (type && type !== "rest") {
+    EXERCISES[type].forEach((ex) => {
+      appState.reps[ex.id] = Array(ex.sets).fill("");
     });
   }
 
@@ -1414,15 +1576,17 @@ function updateHero() {
     appState.split === "6day" ? "P·P·L·P·P·L·R" : "P·R·P·L·R·R";
 
   const baseType = sess.type;
-  const activeType =
-    appState.override && appState.override.date === todayStr
-      ? appState.override.type
-      : baseType;
+  const activeOverrideType = getActiveOverrideType();
+  const todayOverrides = getTodayOverrides();
+  const completedOverrideTypes = todayOverrides.filter(o => o.completed).map(o => o.type);
+  const activeType = activeOverrideType || (completedOverrideTypes.length > 0 ? completedOverrideTypes[completedOverrideTypes.length - 1] : baseType);
 
   const sessEl = document.getElementById("today-session");
-  if (activeType !== baseType) {
-    sessEl.textContent =
-      activeType.charAt(0).toUpperCase() + activeType.slice(1) + " (Make-up)";
+  if (todayOverrides.length > 0) {
+    const makeupLabel = completedOverrideTypes.length > 1
+      ? `${completedOverrideTypes.length} Make-up Sessions`
+      : activeType.charAt(0).toUpperCase() + activeType.slice(1) + (activeOverrideType ? " (Active)" : " (Make-up ✓)");
+    sessEl.textContent = makeupLabel;
     sessEl.className = `status-val ${activeType}`;
     sessEl.style.color = "var(--text)";
   } else {
@@ -1435,14 +1599,15 @@ function updateHero() {
   let greeting = getTimeGreeting(h);
   let chipText = `${DAYS[day]} · Active`;
 
+  const effectiveType = activeOverrideType || (completedOverrideTypes.length > 0 ? completedOverrideTypes[0] : baseType);
+
   if (isComplete) {
     greeting = "Well done,";
     chipText = `${DAYS[day]} · Complete ✓`;
     const tip = DONE_TIPS[Math.floor(Math.random() * DONE_TIPS.length)];
     document.getElementById("hero-tagline").innerHTML =
       `<em>Mission accomplished.</em> ${tip}`;
-  } else if (activeType === "rest") {
-    // 🚨 Changed sess.type to activeType
+  } else if (effectiveType === "rest") {
     greeting = "Recovery mode,";
     chipText = `${DAYS[day]} · Rest`;
     const tip = REST_TIPS[Math.floor(Math.random() * REST_TIPS.length)];
@@ -1497,14 +1662,29 @@ function buildExerciseList(day) {
   const todayStr = getLocalDateStr();
   const isDayComplete = !!appState.completed[todayStr];
 
-  // 🚨 CHECK FOR OVERRIDE
+  // 🚨 MULTI-OVERRIDE: determine what is active for this block
   const baseType = getSchedule()[getLocalTime().getDay()].type;
-  const activeType =
-    appState.override && appState.override.date === todayStr
-      ? appState.override.type
-      : baseType;
-  const isTodayBlock = activeType === day;
+  const activeOverrideType = getActiveOverrideType(); // currently unlocked, not yet finished
+  const isScheduledToday = baseType === day;
+  const isActiveOverride = activeOverrideType === day;
+  const isCompletedOverride = isTypeOverrideCompleted(day);
+
+  // This block can accept input if it's today's scheduled type OR the active (unlocked) override type
+  const isTodayBlock = isScheduledToday || isActiveOverride;
+
+  // For the override button: show only on rest days, for blocks not yet unlocked/completed,
+  // AND only when no other override is currently in-progress (activeOverrideType is null)
   const isRestDay = baseType === "rest";
+  const alreadyUnlocked = isTypeOverriddenToday(day);
+  const canShowOverrideBtn =
+    !isTodayBlock &&
+    isRestDay &&
+    !isDayComplete &&
+    !alreadyUnlocked &&
+    activeOverrideType === null; // 🔒 block while another session is in-progress
+
+  // A block is locked if: the scheduled session is done (completed flag), OR this specific override is done
+  const thisBlockLocked = (isScheduledToday && isDayComplete) || isCompletedOverride;
 
   EXERCISES[day].forEach((ex) => {
     const row = document.createElement("div");
@@ -1513,7 +1693,7 @@ function buildExerciseList(day) {
 
     const colorVar = `var(--${ex.color})`;
     const sessionVariations =
-      isDayComplete && appState.completedVariations?.[todayStr]
+      thisBlockLocked && appState.completedVariations?.[todayStr]
         ? appState.completedVariations[todayStr]
         : appState.variations;
 
@@ -1542,21 +1722,18 @@ function buildExerciseList(day) {
         ? ex.progressions[currentIdx + 1]
         : null;
 
-    // 🚨 Explicitly check our new tracking array so refreshes don't break it
+    // Check upgrade/downgrade state using thisBlockLocked (works for both scheduled and override sessions)
     const wasUpgraded =
-      isDayComplete && appState.upgradedExercises?.[todayStr]?.includes(ex.id);
-
-    // If they didn't upgrade, but their current baseline is higher than what they completed today, they used NFI today.
+      thisBlockLocked && appState.upgradedExercises?.[todayStr]?.includes(ex.id);
     const wasDowngraded =
-      isDayComplete && !wasUpgraded && currentIdx > completedIdx;
+      thisBlockLocked && !wasUpgraded && currentIdx > completedIdx;
 
     let setsHTML = "";
     for (let i = 0; i < ex.sets; i++) {
       const val = appState.reps[ex.id][i] || "";
       const thr = varType === "hold" ? 60 : 50;
       const maxed = val !== "" && Number(val) >= thr ? "maxed" : "";
-
-      const isDisabled = isDayComplete || !isTodayBlock;
+      const isDisabled = thisBlockLocked || !isTodayBlock;
 
       setsHTML += `
         <div class="set-input-wrap">
@@ -1570,7 +1747,7 @@ function buildExerciseList(day) {
     }
 
     let readinessHTML = `<div class="readiness-hint"></div>`;
-    if (isDayComplete && hitTarget) {
+    if (thisBlockLocked && hitTarget) {
       if (wasUpgraded) {
         readinessHTML = `<div class="readiness-hint visible" style="border-color:rgba(57,255,143,0.2);background:rgba(57,255,143,0.05)">
     <strong><img src="icons/levelup.png" style="width:16px;height:16px;vertical-align:text-bottom;margin-right:4px;">Levelled up — ${currentName} awaits next session.</strong>
@@ -1589,8 +1766,8 @@ function buildExerciseList(day) {
 
     // Level controls — only show on today's active block, session not complete
     let levelControlsHTML = "";
-    if (isTodayBlock && !isDayComplete) {
-      const isModified = currentName !== baseName; // 🚨 UPDATED
+    if (isTodayBlock && !thisBlockLocked) {
+      const isModified = currentName !== baseName;
 
       levelControlsHTML = `
         <div class="level-controls">
@@ -1608,10 +1785,10 @@ function buildExerciseList(day) {
     }
 
     // Decide which name to show in the UI header
-    const displayVariationName = isDayComplete
+    const displayVariationName = thisBlockLocked
       ? completedVariationName
       : currentName;
-    const displayVariationIdx = isDayComplete ? completedIdx : currentIdx;
+    const displayVariationIdx = thisBlockLocked ? completedIdx : currentIdx;
 
     row.innerHTML = `
       <div class="ex-top">
@@ -1639,7 +1816,7 @@ function buildExerciseList(day) {
             <div class="progress-fill" id="fill-${ex.id}" style="width:0%;background:${colorVar}"></div>
           </div>
           <div class="progress-label" id="prog-label-${ex.id}">
-            ${isDayComplete ? "Session locked ✓" : !isTodayBlock ? "Scheduled for another day" : "Enter reps above"}
+            ${thisBlockLocked ? "Session locked ✓" : !isTodayBlock ? "Scheduled for another day" : "Enter reps above"}
           </div>
         </div>
       </div>
@@ -1648,18 +1825,25 @@ function buildExerciseList(day) {
     list.appendChild(row);
   });
 
-  if (isTodayBlock && !isDayComplete) {
+  if (isTodayBlock && !isDayComplete && (isScheduledToday || isActiveOverride)) {
     const fin = document.createElement("div");
     fin.className = "finish-area";
-    fin.innerHTML = `<button class="finish-workout-btn" onclick="openFinishModal()">Finish & Lock Session</button>`;
+    fin.innerHTML = `<button class="finish-workout-btn" onclick="openFinishModal('${day}')">Finish & Lock Session</button>`;
     list.appendChild(fin);
   }
-  // 🚨 NEW: Show Override button if it's a Rest Day and the block isn't active
-  else if (!isTodayBlock && isRestDay && !isDayComplete) {
+  // Override button: rest day, block not yet unlocked, no other active override in progress
+  else if (canShowOverrideBtn) {
     const over = document.createElement("div");
     over.className = "finish-area";
     over.innerHTML = `<button class="finish-workout-btn" style="background:transparent; border:1px dashed var(--muted); color:var(--muted)" onclick="requestOverride('${day}')">🔓 Override Rest & Unlock ${day.charAt(0).toUpperCase() + day.slice(1)}</button>`;
     list.appendChild(over);
+  }
+  // Completed override — show locked status
+  else if (isCompletedOverride && !isScheduledToday) {
+    const done = document.createElement("div");
+    done.className = "finish-area";
+    done.innerHTML = `<button class="finish-workout-btn" style="background:transparent; border:1px solid var(--legs); color:var(--legs); cursor:default;">✓ Make-up Session Locked</button>`;
+    list.appendChild(done);
   }
 }
 
@@ -1692,11 +1876,8 @@ function updateRepProgress(exId, sets, color) {
     // Check if this exercise belongs to today's block
     const baseType = getSchedule()[getLocalTime().getDay()].type;
     const todayStr = getLocalDateStr();
-    const activeType =
-      appState.override && appState.override.date === todayStr
-        ? appState.override.type
-        : baseType;
-    const isTodayBlock = activeType === color; // <--- Replace 'todayType' with 'activeType'
+    const activeOverrideType = getActiveOverrideType();
+    const isTodayBlock = baseType === color || activeOverrideType === color;
 
     if (!isTodayBlock) {
       label.textContent = "Scheduled for another day";
@@ -1742,10 +1923,8 @@ function updateDailyVolume() {
   const todayStr = getLocalDateStr();
   const today = getLocalTime().getDay();
   const baseType = getSchedule()[today].type;
-  const type =
-    appState.override && appState.override.date === todayStr
-      ? appState.override.type
-      : baseType;
+  const activeOverrideType = getActiveOverrideType();
+  const type = activeOverrideType || (baseType !== "rest" ? baseType : null);
 
   let total = 0;
   const exercises = {};
@@ -2277,7 +2456,8 @@ function confirmNotFeelingIt(exId, targetName) {
   closeLevelModal();
 
   const today = getLocalTime().getDay();
-  const type = getSchedule()[today].type;
+  const baseType = getSchedule()[today].type;
+  const type = getActiveOverrideType() || (baseType !== "rest" ? baseType : "push");
   buildExerciseList(type);
   EXERCISES[type].forEach((e) => updateRepProgress(e.id, e.sets, e.color));
   updateDailyVolume();
@@ -2302,7 +2482,8 @@ function revertToBaseline(exId) {
   saveState();
 
   const today = getLocalTime().getDay();
-  const type = getSchedule()[today].type;
+  const baseType = getSchedule()[today].type;
+  const type = getActiveOverrideType() || (baseType !== "rest" ? baseType : "push");
   buildExerciseList(type);
   EXERCISES[type].forEach((e) => updateRepProgress(e.id, e.sets, e.color));
   updateDailyVolume();
@@ -2695,11 +2876,11 @@ function initUI() {
   updateHero();
   buildWeekStrip();
   const baseType = getSchedule()[getLocalTime().getDay()].type;
-  const todayType =
-    appState.override && appState.override.date === todayStr
-      ? appState.override.type
-      : baseType;
-  const buildNow = todayType && todayType !== "rest" ? todayType : "push";
+  const activeOverrideType = getActiveOverrideType();
+  // Build: scheduled type if it's a workout day, or the active override if on a rest day, or push as fallback
+  const buildNow = baseType !== "rest"
+    ? baseType
+    : (activeOverrideType || "push");
   buildExerciseList(buildNow);
   EXERCISES[buildNow].forEach((ex) =>
     updateRepProgress(ex.id, ex.sets, ex.color),
@@ -2714,6 +2895,7 @@ function initUI() {
   const today = getLocalTime().getDay();
   const sess = getSchedule()[today];
   const isComplete = !!appState.completed[todayStr];
+  const activeOverrideForToast = getActiveOverrideType();
 
   checkMissedSessions();
   setTimeout(() => {
@@ -2730,6 +2912,15 @@ function initUI() {
       showToast(
         "💪",
         `<strong>Today is ${sess.label} Day, ${appState.name}.</strong><br>Track your reps and chase the pump.`,
+      );
+    } else if (activeOverrideForToast) {
+      openBlock(activeOverrideForToast);
+      document
+        .getElementById(`block-${activeOverrideForToast}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      showToast(
+        "💪",
+        `<strong>Make-up ${activeOverrideForToast.charAt(0).toUpperCase() + activeOverrideForToast.slice(1)} session active, ${appState.name}.</strong><br>Finish and lock it before unlocking another.`,
       );
     } else {
       showToast(
