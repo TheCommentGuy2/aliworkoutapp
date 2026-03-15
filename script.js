@@ -213,7 +213,7 @@ const EXERCISES = {
       id: "push_shoulder",
       label: "Overhead Press",
       focus: "Shoulder Family",
-      note: "Drive hard overhead. No pause at top or bottom — continuous. For statics, hold as long as you can",
+      note: "Drive hard overhead. No pause at top or bottom — continuous.",
       sets: 3,
       color: "push",
       progressions: PROG_SHOULDER,
@@ -222,7 +222,7 @@ const EXERCISES = {
       id: "push_core",
       label: "Core",
       focus: "Push Emphasis",
-      note: "Max tension. Hold (or rep) as long as you can fight for it.",
+      note: "Max tension, zero rest. Hold as long as you can fight for it.",
       sets: 2,
       color: "push",
       progressions: PROG_CORE_PUSH,
@@ -251,7 +251,7 @@ const EXERCISES = {
       id: "pull_core",
       label: "Core",
       focus: "Pull Emphasis",
-      note: "Max tension. Hold (or rep) as long as you can fight for it.",
+      note: "As many as you can, as fast as you can. Maintain your form.",
       sets: 2,
       color: "pull",
       progressions: PROG_CORE_PULL,
@@ -280,7 +280,7 @@ const EXERCISES = {
       id: "legs_glute",
       label: "Glute",
       focus: "Posterior Chain",
-      note: "Squeeze hard at top. Drive the hips as high as possible.",
+      note: "Squeeze hard at top and hold. Drive the hips as high as possible.",
       sets: 3,
       color: "legs",
       progressions: PROG_GLUTE,
@@ -379,11 +379,43 @@ function isTypeOverrideCompleted(type) {
 
 // Migrate legacy single override to array format on load
 function migrateLegacyOverride() {
-  if (appState.override && !appState.overrides) {
-    appState.overrides = [{ ...appState.override, completed: false }];
+  if (!appState.overrides) appState.overrides = [];
+
+  if (appState.override && appState.override.date && appState.override.type) {
+    const legacyDate = appState.override.date;
+    const legacyType = appState.override.type;
+
+    // Only migrate if not already in the array
+    const alreadyMigrated = appState.overrides.some(
+      (o) => o.date === legacyDate && o.type === legacyType
+    );
+
+    if (!alreadyMigrated) {
+      // Determine completed state from history (old code always set completed[date]=true
+      // even for override sessions — we infer from whether history records a matching type)
+      const histEntry = appState.history && appState.history[legacyDate];
+      const wasCompleted = !!(histEntry && histEntry.type === legacyType);
+
+      appState.overrides.push({
+        date: legacyDate,
+        type: legacyType,
+        completed: wasCompleted,
+      });
+    }
+
+    // Fix the completed flag: if this date was a rest day on the user's schedule,
+    // the old code wrongly set completed[date]=true — remove it so the new system
+    // doesn't think there's a locked scheduled session on that day.
+    const sched = getSchedule();
+    const [y, m, d] = legacyDate.split("-").map(Number);
+    const dayOfWeek = new Date(y, m - 1, d).getDay();
+    const scheduledType = sched[dayOfWeek]?.type;
+    if (scheduledType === "rest" && appState.completed?.[legacyDate]) {
+      delete appState.completed[legacyDate];
+    }
+
     appState.override = null;
   }
-  if (!appState.overrides) appState.overrides = [];
 }
 
 // Listen for Auth changes continuously
@@ -2881,11 +2913,22 @@ function initUI() {
   const buildNow = baseType !== "rest"
     ? baseType
     : (activeOverrideType || "push");
-  buildExerciseList(buildNow);
-  EXERCISES[buildNow].forEach((ex) =>
-    updateRepProgress(ex.id, ex.sets, ex.color),
-  );
-  blockBuilt[buildNow] = true;
+  // Always rebuild all three blocks so no block ever retains stale DOM
+  // (e.g. old Finish button persisting after a session is locked and block is collapsed)
+  ["push", "pull", "legs"].forEach((day) => {
+    buildExerciseList(day);
+    EXERCISES[day].forEach((ex) => updateRepProgress(ex.id, ex.sets, ex.color));
+    blockBuilt[day] = true;
+    // Re-apply open styling for blocks that are currently open
+    if (blockOpen[day]) {
+      const body = document.getElementById(`body-${day}`);
+      const header = document.getElementById(`header-${day}`);
+      const toggle = document.getElementById(`toggle-${day}`);
+      if (body) body.style.maxHeight = body.scrollHeight + 1200 + 'px';
+      if (header) header.classList.add('open');
+      if (toggle) toggle.textContent = '▾';
+    }
+  });
   setTimeout(() => {
     renderGraph();
     renderStats();
