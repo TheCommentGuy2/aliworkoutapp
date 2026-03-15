@@ -325,8 +325,9 @@ let appState = {
   nfiBaselines: {},
   sessionBaseline: {},
   upgradedExercises: {},
-  overrides: [],       // replaces single 'override' — array of {date, type, completed}
-  override: null,      // kept for legacy reads only — always null going forward
+  overrides: [],
+  override: null,
+  lockedVolumeToday: {},
 };
 
 function getLocalTime() {
@@ -553,6 +554,7 @@ function initAppAfterLoad() {
     appState.upgradedExercises = {};
     appState.override = null;
     appState.overrides = [];
+    appState.lockedVolumeToday = {};
     saveState(true);
   }
 
@@ -777,6 +779,7 @@ function discardLocalData() {
     upgradedExercises: {},
     overrides: [],
     override: null,
+    lockedVolumeToday: {},
   };
   initAppAfterLoad();
 
@@ -1124,6 +1127,7 @@ async function executeReset() {
     upgradedExercises: {},
     overrides: [],
     override: null,
+    lockedVolumeToday: {},
   };
 
   appState.sessionBaseline = {};
@@ -1177,13 +1181,14 @@ function resetToday() {
 function confirmResetToday() {
   const todayStr = getLocalDateStr();
 
-  // Roll back ALL PRs set during any session today
+  // Roll back ALL PRs set during any session today.
+  // Iterate sessionPRs keys directly — never use appState.variations here because
+  // they may have been upgraded mid-session and no longer match the snapshot keys.
   const sessionPRs = appState.sessionPRs?.[todayStr];
   if (sessionPRs) {
-    Object.values(EXERCISES).flat().forEach((ex) => {
-      const varName = appState.variations[ex.id] || ex.progressions[0].name;
-      if (sessionPRs[varName]) {
-        appState.personalRecords[varName] = sessionPRs[varName];
+    Object.entries(sessionPRs).forEach(([varName, priorPR]) => {
+      if (priorPR) {
+        appState.personalRecords[varName] = priorPR;
       } else if (appState.personalRecords) {
         delete appState.personalRecords[varName];
       }
@@ -1210,6 +1215,7 @@ function confirmResetToday() {
   // Clear all temporary day trackers
   if (appState.completedVariations)  delete appState.completedVariations[todayStr];
   if (appState.upgradedExercises)    delete appState.upgradedExercises[todayStr];
+  if (appState.lockedVolumeToday)    delete appState.lockedVolumeToday[todayStr];
   appState.nfiBaselines = {};
 
   // Zero out today's history
@@ -1410,17 +1416,21 @@ function confirmFinish() {
       });
     }
 
+    // Track locked volume separately so updateDailyVolume can't corrupt it
+    appState.lockedVolumeToday = appState.lockedVolumeToday || {};
+    appState.lockedVolumeToday[todayStr] = (appState.lockedVolumeToday[todayStr] || 0) + sessionTotal;
+    const runningTotal = appState.lockedVolumeToday[todayStr];
+
     if (isRestDayOverride) {
-      // Accumulate across multiple override sessions — add to running total
-      existingObj.total = (existingObj.total || 0) + sessionTotal;
+      existingObj.total = runningTotal;
       existingObj.exercises = { ...(existingObj.exercises || {}), ...sessionExercises };
-      existingObj.type = type; // last session type for graph colouring
+      existingObj.type = type;
       existingObj.split = appState.split;
       appState.history[todayStr] = existingObj;
     } else {
       appState.history[todayStr] = {
         ...existingObj,
-        total: sessionTotal,
+        total: runningTotal,
         exercises: sessionExercises,
         type,
         split: appState.split,
@@ -1933,46 +1943,52 @@ function updateDailyVolume() {
   const activeOverrideType = getActiveOverrideType();
   const type = activeOverrideType || (baseType !== "rest" ? baseType : null);
 
-  let total = 0;
+  // Only sum the ACTIVE type's live reps — not all exercises.
+  // Other types are either locked (reps wiped) or not today's session.
+  let liveTotal = 0;
   const exercises = {};
 
-  Object.values(EXERCISES)
-    .flat()
-    .forEach((ex) => {
-      const sets = (appState.reps[ex.id] || []).map((v) => {
-        const p = parseInt(v);
-        return isNaN(p) ? 0 : p;
-      });
-      const exTotal = sets.reduce((a, b) => a + b, 0);
-      total += exTotal;
-      if (exTotal > 0) {
-        exercises[ex.id] = {
-          sets,
-          variation: appState.variations[ex.id] || ex.progressions[0].name,
-          total: exTotal,
-        };
-      }
+  const activeSets = type ? EXERCISES[type] : Object.values(EXERCISES).flat();
+  activeSets.forEach((ex) => {
+    const sets = (appState.reps[ex.id] || []).map((v) => {
+      const p = parseInt(v);
+      return isNaN(p) ? 0 : p;
     });
+    const exTotal = sets.reduce((a, b) => a + b, 0);
+    liveTotal += exTotal;
+    if (exTotal > 0) {
+      exercises[ex.id] = {
+        sets,
+        variation: appState.variations[ex.id] || ex.progressions[0].name,
+        total: exTotal,
+      };
+    }
+  });
+
+  // Locked volume = sessions already finished and locked today
+  const lockedBase = (appState.lockedVolumeToday && appState.lockedVolumeToday[todayStr]) || 0;
+  const displayTotal = lockedBase + liveTotal;
 
   if (!appState.history) appState.history = {};
 
-  // Preserve rich format if already exists, otherwise build it
   const existing = appState.history[todayStr];
   if (typeof existing === "object" && existing !== null) {
+    // Update live exercises but DO NOT touch total — that is owned by confirmFinish
     appState.history[todayStr] = {
       ...existing,
-      total,
-      exercises,
+      exercises: Object.keys(exercises).length > 0
+        ? { ...(existing.exercises || {}), ...exercises }
+        : existing.exercises || {},
     };
   } else {
     appState.history[todayStr] = {
-      total,
+      total: 0,
       type: type !== "rest" ? type : null,
       exercises,
     };
   }
 
-  document.getElementById("today-vol-total").textContent = `Today: ${total}`;
+  document.getElementById("today-vol-total").textContent = `Today: ${displayTotal}`;
 }
 
 function exportData() {
