@@ -1322,10 +1322,29 @@ function closeFinishModal() {
 }
 
 function confirmFinish() {
-  // 1. Snapshot variations BEFORE applying upgrades
+  const todayStr = getLocalDateStr();
+  const todayDay = getLocalTime().getDay();
+  const baseType = getSchedule()[todayDay].type;
+
+  // Determine session type from what openFinishModal stored
+  const type = pendingFinishType || baseType;
+  pendingFinishType = null;
+
+  // Is this a rest-day override session or a normal scheduled session?
+  const isRestDayOverride = baseType === "rest";
+
+  // 1. Snapshot reps NOW before anything touches them
+  const repSnapshot = {};
+  if (type && type !== "rest") {
+    EXERCISES[type].forEach((ex) => {
+      repSnapshot[ex.id] = [...(appState.reps[ex.id] || [])];
+    });
+  }
+
+  // 2. Snapshot variations BEFORE applying upgrades
   const preUpgradeVariations = { ...appState.variations };
 
-  // 2. Restore NFI (Not Feeling It) baselines so next session reverts to normal
+  // 3. Restore NFI baselines so next session reverts to normal
   if (appState.nfiBaselines) {
     Object.keys(appState.nfiBaselines).forEach((exId) => {
       appState.variations[exId] = appState.nfiBaselines[exId];
@@ -1333,14 +1352,13 @@ function confirmFinish() {
     appState.nfiBaselines = {};
   }
 
-  // 3. Track Upgrades
-  const todayStr = getLocalDateStr();
+  // 4. Apply upgrades (from checked boxes in finish modal)
   appState.upgradedExercises = appState.upgradedExercises || {};
   if (!appState.upgradedExercises[todayStr]) appState.upgradedExercises[todayStr] = [];
 
   let upgradeCount = 0;
   pendingUpgrades.forEach((upg) => {
-    const cb = document.getElementById(`upg-${upg.id}`);
+    const cb = document.getElementById("upg-" + upg.id);
     if (cb && cb.checked) {
       appState.variations[upg.id] = upg.name;
       appState.upgradedExercises[todayStr].push(upg.id);
@@ -1348,95 +1366,109 @@ function confirmFinish() {
     }
   });
 
-  // 4. Determine session type — use pendingFinishType (set by openFinishModal)
-  const todayDay = getLocalTime().getDay();
-  const baseType = getSchedule()[todayDay].type;
-  const type = pendingFinishType || baseType;
-  pendingFinishType = null;
-
-  // 5. Mark the override as completed (if this was an override session)
-  const isOverrideSession = baseType === "rest" || isTypeOverriddenToday(type);
-  if (isOverrideSession && appState.overrides) {
-    const overrideEntry = appState.overrides.find(
+  // 5. Mark session as complete
+  if (isRestDayOverride) {
+    // Mark this specific override entry as completed
+    const overrideEntry = (appState.overrides || []).find(
       (o) => o.date === todayStr && o.type === type && !o.completed
     );
-    if (overrideEntry) {
-      overrideEntry.completed = true;
-    }
+    if (overrideEntry) overrideEntry.completed = true;
   } else {
-    // Scheduled session — mark day complete
+    // Normal scheduled session
     appState.completed[todayStr] = true;
   }
 
+  // 6. Snapshot completed variations (merge so multi-session days don't overwrite each other)
   appState.completedVariations = appState.completedVariations || {};
-  appState.completedVariations[todayStr] = preUpgradeVariations;
+  appState.completedVariations[todayStr] = {
+    ...(appState.completedVariations[todayStr] || {}),
+    ...preUpgradeVariations,
+  };
 
-  // 6. Lock session type into rich history entry
+  // 7. Write history
   if (type && type !== "rest") {
     const existing = appState.history?.[todayStr];
-    // For override sessions, accumulate into a sessions array in history
-    if (isOverrideSession && !(baseType !== "rest")) {
-      // Store per-session history so multiple override sessions don't overwrite each other
-      const existingObj = typeof existing === "object" ? existing : { total: existing || 0 };
-      if (!existingObj.sessions) existingObj.sessions = [];
-      existingObj.sessions.push({ type, total: (appState.reps ? Object.values(EXERCISES[type] || []).reduce((sum, ex) => {
-        return sum + (appState.reps[ex.id] || []).reduce((a, b) => a + (parseInt(b) || 0), 0);
-      }, 0) : 0) });
-      existingObj.total = (existingObj.total || 0) + (existingObj.sessions[existingObj.sessions.length - 1].total || 0);
-      existingObj.type = type; // last session type wins for graph colouring
+    const existingObj = typeof existing === "object" && existing !== null
+      ? existing
+      : { total: existing || 0, exercises: {} };
+
+    // Calculate volume for this session from the rep snapshot
+    let sessionTotal = 0;
+    const sessionExercises = {};
+    if (type && EXERCISES[type]) {
+      EXERCISES[type].forEach((ex) => {
+        const sets = (repSnapshot[ex.id] || []).map((v) => parseInt(v) || 0);
+        const exTotal = sets.reduce((a, b) => a + b, 0);
+        sessionTotal += exTotal;
+        if (exTotal > 0) {
+          sessionExercises[ex.id] = {
+            sets,
+            total: exTotal,
+            variation: preUpgradeVariations[ex.id] || ex.progressions[0].name,
+          };
+        }
+      });
+    }
+
+    if (isRestDayOverride) {
+      // Accumulate across multiple override sessions — add to running total
+      existingObj.total = (existingObj.total || 0) + sessionTotal;
+      existingObj.exercises = { ...(existingObj.exercises || {}), ...sessionExercises };
+      existingObj.type = type; // last session type for graph colouring
       existingObj.split = appState.split;
       appState.history[todayStr] = existingObj;
     } else {
       appState.history[todayStr] = {
-        ...(typeof existing === "object" ? existing : { total: existing || 0 }),
-        type: type,
+        ...existingObj,
+        total: sessionTotal,
+        exercises: sessionExercises,
+        type,
         split: appState.split,
       };
     }
   }
 
-  // 7. Snapshot PRs for rollback (merge with existing sessionPRs for multi-session days)
+  // 8. Snapshot pre-session PRs for rollback (only record baseline — don't overwrite if already set)
   appState.sessionPRs = appState.sessionPRs || {};
   if (!appState.sessionPRs[todayStr]) appState.sessionPRs[todayStr] = {};
   if (type && type !== "rest") {
     EXERCISES[type].forEach((ex) => {
       const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
       const prevPR = appState.personalRecords?.[varName];
-      if (prevPR && !appState.sessionPRs[todayStr][varName]) {
-        appState.sessionPRs[todayStr][varName] = prevPR;
+      // Only snapshot the very first time we see this variation today
+      if (!appState.sessionPRs[todayStr].hasOwnProperty(varName)) {
+        appState.sessionPRs[todayStr][varName] = prevPR || null;
       }
     });
   }
 
-  // 8. Log New PRs
+  // 9. Record new PRs using the rep snapshot
   const newPRs = [];
   if (type && type !== "rest") {
     EXERCISES[type].forEach((ex) => {
       const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
       if (!appState.personalRecords) appState.personalRecords = {};
-      (appState.reps[ex.id] || []).forEach((v) => {
+      const varType = (() => {
+        const entry = ex.progressions.find((p) => p.name === varName);
+        return entry?.type || "reps";
+      })();
+      (repSnapshot[ex.id] || []).forEach((v) => {
         const val = parseInt(v);
         if (!isNaN(val) && val > 0) {
-          const varType = (() => {
-            const entry = ex.progressions.find((p) => p.name === varName);
-            return entry?.type || "reps";
-          })();
           const prev = appState.personalRecords[varName]?.value || 0;
           if (val > prev) {
             appState.personalRecords[varName] = {
               value: val,
               unit: varType === "hold" ? "s" : "reps",
             };
-            newPRs.push(
-              `${varName}: ${val}${varType === "hold" ? "s" : " reps"}`,
-            );
+            newPRs.push(varName + ": " + val + (varType === "hold" ? "s" : " reps"));
           }
         }
       });
     });
   }
 
-  // 9. Reset reps for this block so next override session starts clean
+  // 10. Clear reps for this block so next override session starts clean
   if (type && type !== "rest") {
     EXERCISES[type].forEach((ex) => {
       appState.reps[ex.id] = Array(ex.sets).fill("");
@@ -1447,9 +1479,9 @@ function confirmFinish() {
   closeFinishModal();
   initUI();
 
-  let msg = `<strong>Session Locked, ${appState.name}.</strong><br>Numbers saved to history.`;
+  let msg = "<strong>Session Locked, " + appState.name + ".</strong><br>Numbers saved to history.";
   if (upgradeCount > 0) {
-    msg += `<br><img src="icons/levelup.png" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">${upgradeCount} exercise${upgradeCount > 1 ? "s" : ""} levelled up for next session!`;
+    msg += "<br><img src='icons/levelup.png' style='width:18px;height:18px;vertical-align:middle;margin-right:4px;'>" + upgradeCount + " exercise" + (upgradeCount > 1 ? "s" : "") + " levelled up for next session!";
   }
   showToast("🏆", msg);
 
@@ -1457,7 +1489,7 @@ function confirmFinish() {
     setTimeout(() => {
       showToast(
         "<img src='icons/best.png' style='width:24px;height:24px;'>",
-        `<strong>New PR${newPRs.length > 1 ? "s" : ""} this session!</strong><br>${newPRs.join("<br>")}`,
+        "<strong>New PR" + (newPRs.length > 1 ? "s" : "") + " this session!</strong><br>" + newPRs.join("<br>"),
       );
     }, 2000);
   }
