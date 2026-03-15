@@ -1176,101 +1176,43 @@ function resetToday() {
 
 function confirmResetToday() {
   const todayStr = getLocalDateStr();
-  const baseType = getSchedule()[getLocalTime().getDay()].type;
 
-  // Determine what to reset: the active (in-progress) override, or the last completed override, or the scheduled session
-  const activeOverride = getActiveOverrideType(); // unlocked but not yet finished
-  const completedOverrides = (appState.overrides || []).filter(
-    (o) => o.date === todayStr && o.completed
-  );
-  const lastCompletedOverride = completedOverrides[completedOverrides.length - 1];
-
-  let resetType;
-  if (activeOverride) {
-    // There's an in-progress override — reset that
-    resetType = activeOverride;
-  } else if (lastCompletedOverride) {
-    // Reset the last completed override session
-    resetType = lastCompletedOverride.type;
-  } else {
-    // Reset the scheduled session
-    resetType = baseType !== "rest" ? baseType : null;
-  }
-
+  // Roll back ALL PRs set during any session today
   const sessionPRs = appState.sessionPRs?.[todayStr];
-
-  // Capture varNames BEFORE rollback
-  const varNameSnapshot = {};
-  if (resetType) {
-    EXERCISES[resetType]?.forEach((ex) => {
-      varNameSnapshot[ex.id] =
-        appState.variations[ex.id] || ex.progressions[0].name;
-    });
-  }
-
-  // Restore the session baseline variations
-  if (
-    appState.sessionBaseline &&
-    Object.keys(appState.sessionBaseline).length > 0
-  ) {
-    Object.assign(appState.variations, appState.sessionBaseline);
-  }
-
-  // Clean up temporary day trackers
-  if (appState.completedVariations) delete appState.completedVariations[todayStr];
-
-  // Only wipe upgradedExercises for the reset type, not all
-  if (appState.upgradedExercises?.[todayStr] && resetType) {
-    appState.upgradedExercises[todayStr] = appState.upgradedExercises[todayStr].filter(
-      (id) => !EXERCISES[resetType]?.some((ex) => ex.id === id)
-    );
-  }
-
-  appState.nfiBaselines = {};
-
-  // Roll back PRs for the reset session type
-  if (sessionPRs !== undefined && resetType) {
-    EXERCISES[resetType]?.forEach((ex) => {
-      const varName = varNameSnapshot[ex.id];
+  if (sessionPRs) {
+    Object.values(EXERCISES).flat().forEach((ex) => {
+      const varName = appState.variations[ex.id] || ex.progressions[0].name;
       if (sessionPRs[varName]) {
         appState.personalRecords[varName] = sessionPRs[varName];
-      } else {
+      } else if (appState.personalRecords) {
         delete appState.personalRecords[varName];
       }
     });
-    // Remove sessionPRs only for this type's exercises
-    if (resetType) {
-      EXERCISES[resetType]?.forEach((ex) => {
-        const varName = varNameSnapshot[ex.id];
-        delete appState.sessionPRs[todayStr][varName];
-      });
-    }
+    delete appState.sessionPRs[todayStr];
   }
 
-  // Wipe reps for the reset type
-  if (resetType) {
-    EXERCISES[resetType]?.forEach((ex) => {
-      appState.reps[ex.id] = Array(ex.sets).fill("");
-    });
+  // Restore all variations to session baseline
+  if (appState.sessionBaseline && Object.keys(appState.sessionBaseline).length > 0) {
+    Object.assign(appState.variations, appState.sessionBaseline);
   }
 
-  // Remove the override entry being reset (active or last completed)
-  if (activeOverride && appState.overrides) {
-    const idx = appState.overrides.findIndex(
-      (o) => o.date === todayStr && o.type === activeOverride && !o.completed
-    );
-    if (idx > -1) appState.overrides.splice(idx, 1);
-  } else if (lastCompletedOverride && appState.overrides) {
-    const idx = appState.overrides.findIndex(
-      (o) => o.date === todayStr && o.type === lastCompletedOverride.type && o.completed
-    );
-    if (idx > -1) appState.overrides.splice(idx, 1);
-  } else {
-    // Scheduled session reset — clear the completed flag
-    delete appState.completed[todayStr];
-  }
+  // Wipe all reps across every exercise
+  Object.values(EXERCISES).flat().forEach((ex) => {
+    appState.reps[ex.id] = Array(ex.sets).fill("");
+  });
 
-  // Reset history for this type (remove the session's contribution)
+  // Clear ALL today's override entries (not just the last one)
+  appState.overrides = (appState.overrides || []).filter((o) => o.date !== todayStr);
+
+  // Clear scheduled session completed flag
+  delete appState.completed[todayStr];
+
+  // Clear all temporary day trackers
+  if (appState.completedVariations)  delete appState.completedVariations[todayStr];
+  if (appState.upgradedExercises)    delete appState.upgradedExercises[todayStr];
+  appState.nfiBaselines = {};
+
+  // Zero out today's history
   appState.history[todayStr] = { total: 0, type: null, exercises: {} };
 
   saveState();
@@ -1278,9 +1220,10 @@ function confirmResetToday() {
   document.getElementById("reset-today-modal").classList.remove("show");
   showToast(
     "<img src='icons/bin.png' style='width:24px;height:24px;'>",
-    `<strong>Log Reset</strong><br>Today's numbers cleared. PRs rolled back.`,
+    "<strong>Log Reset</strong><br>Today\'s numbers cleared. PRs rolled back.",
   );
-} // ============================================================
+}
+// ============================================================
 // FINISH WORKOUT
 // ============================================================
 let pendingUpgrades = [];
