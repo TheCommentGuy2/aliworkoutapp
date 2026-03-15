@@ -2099,7 +2099,20 @@ function executeImport() {
 
   // Run the cool loading animation
   showTransferOverlay(IMPORT_MSGS, 500, () => {
-    appState = { ...appState, ...pendingImportData };
+    // Merge backup over a full default state so new fields are always present
+    // even if the backup is an older file that predates them
+    const freshDefaults = {
+      onboarded: false, name: "", split: "default", date: "",
+      reps: {}, variations: {}, history: {}, sessionPRs: {}, completed: {},
+      personalRecords: {}, completedVariations: {}, lastMissedAcknowledged: "",
+      nfiBaselines: {}, sessionBaseline: {}, upgradedExercises: {},
+      overrides: [], override: null, lockedVolumeToday: {},
+    };
+    appState = { ...freshDefaults, ...pendingImportData };
+
+    // Run legacy migration in case the backup has the old single override field
+    migrateLegacyOverride();
+
     saveState();
     document.getElementById("settings-modal").classList.remove("show");
     initUI();
