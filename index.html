@@ -686,6 +686,12 @@
           Best single-set rep count per exercise variation. Updates live as you
           train.
         </div>
+        <div class="graph-filters" id="pr-filters" style="margin-bottom:16px;flex-wrap:wrap;">
+          <button class="g-btn filter-push active" id="pr-filter-push" onclick="setPRFilter('push')">Push</button>
+          <button class="g-btn filter-pull" id="pr-filter-pull" onclick="setPRFilter('pull')">Pull</button>
+          <button class="g-btn filter-legs" id="pr-filter-legs" onclick="setPRFilter('legs')">Legs</button>
+          <button class="g-btn" id="pr-filter-core" onclick="setPRFilter('core')" style="border-color:var(--border);color:var(--dim)">Core</button>
+        </div>
         <div id="pr-list"></div>
       </div>
     </div>

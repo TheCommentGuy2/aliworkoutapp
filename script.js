@@ -1507,39 +1507,80 @@ function confirmFinish() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+
 // ============================================================
 // PR TRACKER
 // ============================================================
-function openPRModal() {
-  const prs = appState.personalRecords || {};
-  const keys = Object.keys(prs);
-  const list = document.getElementById("pr-list");
 
-  if (keys.length === 0) {
-    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.6;">
-      <img src="icons/best.png" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:0.3;">
-      <strong style="color:var(--dim);display:block;margin-bottom:6px">No records yet</strong>
-      Start logging reps to track your personal bests here.
-    </div>`;
-  } else {
-    const val = (k) => prs[k]?.value ?? prs[k];
-    const sorted = keys.sort((a, b) => val(b) - val(a));
-    list.innerHTML = sorted
-      .map(
-        (k) => `
-      <div style="display:flex;justify-content:space-between;align-items:center;
-                  padding:14px 0;border-bottom:1px solid var(--border);">
-        <span style="font-size:14px;color:var(--text);line-height:1.3">${k}</span>
-        <span style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;
-                     color:var(--gold);white-space:nowrap;margin-left:12px">
-          ${prs[k]?.value ?? prs[k]} <span style="font-size:11px;color:var(--muted);font-family:'Outfit',sans-serif">${prs[k]?.unit ?? "reps"}</span>
-        </span>
-      </div>`,
-      )
-      .join("");
-  }
-  document.getElementById("pr-modal").classList.add("show");
+// Build a lookup: variation name -> category (push/pull/legs/core)
+function buildPRCategoryMap() {
+  const map = {};
+  const coreIds = ['push_core', 'pull_core', 'legs_core'];
+  Object.values(EXERCISES).flat().forEach((ex) => {
+    const isCore = coreIds.includes(ex.id);
+    const cat = isCore ? 'core' : ex.color;
+    ex.progressions.forEach((p) => {
+      if (!map[p.name] || isCore) map[p.name] = cat;
+    });
+  });
+  return map;
 }
+
+let activePRFilter = 'push';
+
+function setPRFilter(filter) {
+  activePRFilter = filter;
+  ['push', 'pull', 'legs', 'core'].forEach((f) => {
+    const btn = document.getElementById('pr-filter-' + f);
+    if (!btn) return;
+    btn.classList.toggle('active', f === filter);
+  });
+  renderPRList();
+}
+
+function renderPRList() {
+  const prs = appState.personalRecords || {};
+  const list = document.getElementById('pr-list');
+  const catMap = buildPRCategoryMap();
+  const filtered = Object.keys(prs).filter((k) => catMap[k] === activePRFilter);
+
+  if (Object.keys(prs).length === 0) {
+    list.innerHTML =
+      '<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.6;">' +
+      '<img src="icons/best.png" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:0.3;">' +
+      '<strong style="color:var(--dim);display:block;margin-bottom:6px">No records yet</strong>' +
+      'Start logging reps to track your personal bests here.</div>';
+    return;
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML =
+      '<div style="text-align:center;padding:32px 20px;color:var(--muted);font-size:14px;">' +
+      'No ' + activePRFilter.charAt(0).toUpperCase() + activePRFilter.slice(1) + ' records yet.</div>';
+    return;
+  }
+
+  const val = (k) => prs[k]?.value ?? prs[k];
+  const colorVar = activePRFilter === 'core' ? 'var(--gold)' : 'var(--' + activePRFilter + ')';
+  const sorted = [...filtered].sort((a, b) => val(b) - val(a));
+
+  list.innerHTML = sorted.map((k) =>
+    '<div style="display:flex;justify-content:space-between;align-items:center;' +
+    'padding:14px 0;border-bottom:1px solid var(--border);">' +
+    '<span style="font-size:14px;color:var(--text);line-height:1.3">' + k + '</span>' +
+    '<span style="font-family:Syne,sans-serif;font-size:22px;font-weight:700;' +
+    'color:' + colorVar + ';white-space:nowrap;margin-left:12px">' +
+    (prs[k]?.value ?? prs[k]) +
+    ' <span style="font-size:11px;color:var(--muted);font-family:Outfit,sans-serif">' +
+    (prs[k]?.unit ?? 'reps') + '</span></span></div>'
+  ).join('');
+}
+
+function openPRModal() {
+  setPRFilter(activePRFilter);
+  document.getElementById('pr-modal').classList.add('show');
+}
+
 
 // ============================================================
 // HERO
