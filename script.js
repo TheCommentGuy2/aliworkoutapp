@@ -593,7 +593,7 @@ async function saveState(skipRender = false) {
 
   // Sync to Cloud
   if (currentUser) {
-    supabaseClient
+    return supabaseClient
       .from("user_data")
       .upsert({
         user_id: currentUser.id,
@@ -1327,7 +1327,7 @@ function closeFinishModal() {
   document.getElementById("finish-modal").classList.remove("show");
 }
 
-function confirmFinish() {
+async function confirmFinish() {
   const todayStr = getLocalDateStr();
   const todayDay = getLocalTime().getDay();
   const baseType = getSchedule()[todayDay].type;
@@ -1485,7 +1485,7 @@ function confirmFinish() {
     });
   }
 
-  saveState();
+  await saveState();
   closeFinishModal();
   initUI();
 
@@ -2580,37 +2580,7 @@ function renderTacticalAnalysis() {
   const hist = appState.history || {};
   const today = getLocalTime();
 
-  // ── Push:Pull ratio (last 30 days) ────────────────────────
-  let pushVol = 0,
-    pullVol = 0;
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(today.getTime() - i * 86400000);
-    const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    const entry = hist[ds];
-    if (!entry || typeof entry !== "object") continue;
-    if (entry.type === "push") pushVol += entry.total || 0;
-    if (entry.type === "pull") pullVol += entry.total || 0;
-  }
-  const totalPP = pushVol + pullVol;
-  const pushPct = totalPP > 0 ? Math.round((pushVol / totalPP) * 100) : 50;
-  const ratio = pullVol > 0 ? pushVol / pullVol : null;
 
-  const pushBar = document.getElementById("tac-push-bar");
-  const pullBar = document.getElementById("tac-pull-bar");
-  if (pushBar) {
-    pushBar.style.width = pushPct + "%";
-    pushBar.style.background =
-      ratio !== null && ratio > 1.5
-        ? "var(--push)"
-        : ratio !== null && ratio > 1.15
-          ? "var(--gold)"
-          : "var(--legs)";
-  }
-  if (pullBar) pullBar.style.width = 100 - pushPct + "%";
-  const pushLbl = document.getElementById("tac-push-label");
-  const pullLbl = document.getElementById("tac-pull-label");
-  if (pushLbl) pushLbl.textContent = `Push ${pushVol}`;
-  if (pullLbl) pullLbl.textContent = `Pull ${pullVol}`;
 
   // ── Plateau detection ─────────────────────────────────────
   const sortedDates = Object.keys(hist).sort().reverse();
@@ -2704,11 +2674,7 @@ function renderTacticalAnalysis() {
     icon = "✅",
     body = "";
 
-  if (ratio !== null && ratio > 1.5 && totalPP > 0) {
-    cls = "priority-safety";
-    icon = "⚠️";
-    body = `<strong style="color:var(--push)">Imbalance Detected:</strong> You're doing <strong>${ratio.toFixed(1)}×</strong> more Push than Pull over 30 days. Prioritise Pull sessions to protect your shoulders.`;
-  } else if (plateaus.length > 0) {
+  if (plateaus.length > 0) {
     cls = "priority-plateau";
     icon = "📉";
     body = `<strong style="color:var(--gold)">Stagnation — ${plateaus[0].name}:</strong> No rep improvement in 3 sessions. Try an extra set or slower eccentric tempo.`;
@@ -2729,7 +2695,7 @@ function renderTacticalAnalysis() {
         .join(", ");
       body = `<strong style="color:var(--legs)">Mission Critical — Push for the next level:</strong> You are close to graduating on multiple fronts: ${listStr}.`;
     }
-  } else if (totalPP === 0) {
+  } else if (Object.keys(appState.completed || {}).length < 3) {
     cls = "priority-good";
     icon = "";
     body = `<span style="color:var(--muted)">Complete a few sessions to unlock analysis.</span>`;
