@@ -24,7 +24,6 @@ const PROG_VERT_PUSH = [
   { name: "Parallel Bar Dips", type: "reps" },
   { name: "Deep Parallel Bar Dips", type: "reps" },
   { name: "Korean Dips", type: "reps" },
-  { name: "Ring Dips", type: "reps" },
   { name: "Bulgarian Dips", type: "reps" },
   { name: "Weighted Dips", type: "reps" },
   { name: "One-Arm Assisted Dip", type: "reps" },
@@ -113,31 +112,23 @@ const PROG_CALF = [
   { name: "Explosive Calf Raises", type: "reps" },
   { name: "Single-Leg Explosive Calf Raises", type: "reps" },
 ];
-const PROG_CORE_PUSH = [
+const PROG_CORE = [
   { name: "Plank", type: "hold" },
-  { name: "Shoulder Taps", type: "reps" },
+  { name: "Plank Shoulder Taps", type: "reps" },
   { name: "Hollow Hold", type: "hold" },
+  { name: "V-Ups", type: "reps" },
   { name: "L-Sit Tuck", type: "hold" },
   { name: "Full L-Sit", type: "hold" },
-  { name: "V-Ups", type: "reps" },
-  { name: "Dragon Flags", type: "reps" },
-];
-const PROG_CORE_PULL = [
   { name: "Hanging Knee Raises", type: "reps" },
   { name: "Hanging Leg Raises", type: "reps" },
   { name: "Toes-to-Bar", type: "reps" },
-  { name: "L-Sit Pull-ups", type: "reps" },
-  { name: "Tuck Front Lever", type: "hold" },
   { name: "Dragon Flags", type: "reps" },
+  { name: "V-Sit / High Compression L-Sit", type: "hold" },
 ];
-const PROG_CORE_LEGS = [
-  { name: "Plank", type: "hold" },
-  { name: "Side Plank", type: "hold" },
-  { name: "Hollow Hold", type: "hold" },
-  { name: "V-Ups", type: "reps" },
-  { name: "Hanging Leg Raises", type: "reps" },
-  { name: "Dragon Flags", type: "reps" },
-];
+// Unified core progression — same list used across Push, Pull and Legs days
+const PROG_CORE_PUSH = PROG_CORE;
+const PROG_CORE_PULL = PROG_CORE;
+const PROG_CORE_LEGS = PROG_CORE;
 
 // ============================================================
 // SLOT LABELS
