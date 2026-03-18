@@ -116,14 +116,14 @@ const PROG_CORE = [
   { name: "Plank", type: "hold" },
   { name: "Plank Shoulder Taps", type: "reps" },
   { name: "Hollow Hold", type: "hold" },
-  { name: "V-Ups", type: "reps" },
-  { name: "L-Sit Tuck", type: "hold" },
-  { name: "Full L-Sit", type: "hold" },
   { name: "Hanging Knee Raises", type: "reps" },
+  { name: "L-Sit Tuck", type: "hold" },
+  { name: "V-Ups", type: "reps" },
   { name: "Hanging Leg Raises", type: "reps" },
   { name: "Toes-to-Bar", type: "reps" },
-  { name: "Dragon Flags", type: "reps" },
+  { name: "Full L-Sit", type: "hold" },
   { name: "V-Sit / High Compression L-Sit", type: "hold" },
+  { name: "Dragon Flags", type: "reps" },
 ];
 // Unified core progression — same list used across Push, Pull and Legs days
 const PROG_CORE_PUSH = PROG_CORE;
