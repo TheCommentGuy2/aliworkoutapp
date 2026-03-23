@@ -25,6 +25,9 @@
       >
         <img src="icons/out.png" style="width: 20px; height: 20px" />
       </button>
+      <button class="nav-btn" id="mode-switch-btn" onclick="requestModeSwitch()" title="Switch Mode" style="display:none">
+        <span id="mode-switch-icon">🏋️</span>
+      </button>
       <button class="nav-btn" onclick="openPRModal()" title="Personal Records">
         <img src="icons/best.png" style="width: 22px; height: 22px" />
       </button>
@@ -369,6 +372,24 @@
           </select>
         </div>
 
+        <!-- MODE TOGGLE -->
+        <div class="form-group">
+          <label>Training Mode</label>
+          <div class="mode-toggle" id="mode-toggle">
+            <button class="g-btn active" id="mode-bw" type="button" onclick="setSettingsMode('bodyweight')">Bodyweight</button>
+            <button class="g-btn" id="mode-gym" type="button" onclick="setSettingsMode('gym')">Gym</button>
+          </div>
+        </div>
+        <div class="form-group" id="weight-unit-group" style="display:none">
+          <label>Weight Unit</label>
+          <select id="setup-weight-unit" class="form-control">
+            <option value="kg">Kilograms (kg)</option>
+            <option value="lbs">Pounds (lbs)</option>
+          </select>
+        </div>
+
+        <!-- BODYWEIGHT ONBOARDING -->
+        <div id="bw-onboard-section">
         <!-- PUSH SLOTS -->
         <div class="onboard-section-title">🔴 Push Day</div>
         <div class="form-group">
@@ -497,6 +518,60 @@
             onchange="updateOnboardingPreview()"
           ></select>
         </div>
+        </div><!-- end bw-onboard-section -->
+
+        <!-- GYM ONBOARDING -->
+        <div id="gym-onboard-section" style="display:none">
+          <div class="onboard-section-title">🏋️ Gym — Push Day</div>
+          <div class="form-group">
+            <label>Vertical Push (Dip Family) — pick your level</label>
+            <select id="ob-gym-push-vert" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+          <div class="form-group">
+            <label>Horizontal Push (Chest Press) — pick your exercise</label>
+            <select id="ob-gym-push-horiz" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+          <div class="form-group">
+            <label>Overhead Press — pick your exercise</label>
+            <select id="ob-gym-push-shoulder" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+          <div class="form-group">
+            <label>Core — Push Day</label>
+            <select id="ob-gym-push-core" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+
+          <div class="onboard-section-title">🏋️ Gym — Pull Day</div>
+          <div class="form-group">
+            <label>Vertical Pull (Pull-up Family) — pick your level</label>
+            <select id="ob-gym-pull-vert" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+          <div class="form-group">
+            <label>Horizontal Pull (Row) — pick your exercise</label>
+            <select id="ob-gym-pull-horiz" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+          <div class="form-group">
+            <label>Core — Pull Day</label>
+            <select id="ob-gym-pull-core" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+
+          <div class="onboard-section-title">🏋️ Gym — Legs Day</div>
+          <div class="form-group">
+            <label>Squat — pick your exercise</label>
+            <select id="ob-gym-legs-squat" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+          <div class="form-group">
+            <label>Glute — pick your level</label>
+            <select id="ob-gym-legs-glute" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+          <div class="form-group">
+            <label>Calf — pick your level</label>
+            <select id="ob-gym-legs-calf" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+          <div class="form-group">
+            <label>Core — Legs Day</label>
+            <select id="ob-gym-legs-core" class="form-control" onchange="updateOnboardingPreview()"></select>
+          </div>
+        </div><!-- end gym-onboard-section -->
 
         <!-- LIVE PREVIEW -->
         <div
@@ -672,6 +747,7 @@
           <button class="g-btn filter-pull" id="pr-filter-pull" onclick="setPRFilter('pull')">Pull</button>
           <button class="g-btn filter-legs" id="pr-filter-legs" onclick="setPRFilter('legs')">Legs</button>
           <button class="g-btn" id="pr-filter-core" onclick="setPRFilter('core')" style="border-color:var(--border);color:var(--dim)">Core</button>
+          <button class="g-btn" id="pr-filter-gym" onclick="setPRFilter('gym')" style="border-color:var(--border);color:var(--gold);display:none">🏋️ Gym</button>
         </div>
         <div id="pr-list"></div>
       </div>
@@ -1451,6 +1527,43 @@
       <div class="transfer-spinner"></div>
       <div class="transfer-msg" id="transfer-msg">Preparing...</div>
       <div class="transfer-sub" id="transfer-sub">Please wait</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODE SWITCH CONFIRMATION MODAL                               -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="mode-switch-modal">
+      <div class="modal-box" style="max-width: 420px; text-align: center">
+        <div class="modal-header" id="mode-switch-title">Switch Mode?</div>
+        <div class="modal-sub" id="mode-switch-msg">
+          Your history and PRs from both modes are preserved separately.
+          Today's unfinished reps will be cleared.
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px">
+          <button class="g-btn" style="flex: 1; padding: 12px" onclick="document.getElementById('mode-switch-modal').classList.remove('show')">Cancel</button>
+          <button class="save-btn" style="flex: 1; margin: 0; background: var(--gold); color: var(--bg);" onclick="executeModeSwitch()">Switch Mode</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- BODYWEIGHT POPUP MODAL                                       -->
+    <!-- ============================================================ -->
+    <div class="modal-overlay" id="bw-popup-modal">
+      <div class="modal-box" style="max-width: 360px; text-align: center">
+        <div class="modal-header">🏋️ Session Bodyweight</div>
+        <div class="modal-sub">Log your bodyweight for today's session. Used for assisted/weighted exercises.</div>
+        <div class="form-group" style="margin-top: 20px">
+          <div style="display: flex; align-items: center; gap: 10px; justify-content: center">
+            <input type="number" id="bw-popup-input" class="weight-input" style="width:120px" placeholder="0" step="0.1">
+            <span class="weight-unit" id="bw-popup-unit">kg</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px">
+          <button class="g-btn" style="flex: 1; padding: 12px" onclick="skipBodyweightPopup()">Skip</button>
+          <button class="save-btn" style="flex: 1; margin: 0; background: var(--gold); color: var(--bg);" onclick="saveSessionBodyweight()">Save</button>
+        </div>
+      </div>
     </div>
 
     <!-- TOAST -->

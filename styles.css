@@ -1646,3 +1646,75 @@
       .skip-item:last-child {
         border-bottom: none;
       }
+
+      /* GYM MODE */
+      .weight-input-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .weight-input {
+        width: 80px;
+        height: 44px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: "Syne", sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        text-align: center;
+        outline: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        -moz-appearance: textfield;
+        appearance: textfield;
+      }
+      .weight-input::-webkit-outer-spin-button,
+      .weight-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+      }
+      .weight-input:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.1);
+      }
+      .weight-input:disabled {
+        background: var(--s1);
+        color: var(--muted);
+        border-color: transparent;
+        pointer-events: none;
+      }
+      .weight-unit {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .gym-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--bg);
+        background: var(--gold);
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+      .mode-toggle {
+        display: flex;
+        gap: 4px;
+      }
+      .mode-toggle .g-btn {
+        flex: 1;
+        padding: 10px;
+        font-size: 12px;
+        text-align: center;
+      }
+      @media (max-width: 600px) {
+        .weight-input-row {
+          flex-wrap: wrap;
+        }
+      }

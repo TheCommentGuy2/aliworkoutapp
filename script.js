@@ -131,6 +131,51 @@ const PROG_CORE_PULL = PROG_CORE;
 const PROG_CORE_LEGS = PROG_CORE;
 
 // ============================================================
+// GYM PROGRESSION ARRAYS
+// ============================================================
+const GYM_PROG_VERT_PUSH = [
+  { name: "Assisted Dips", type: "reps", weightType: "assistance" },
+  { name: "Bodyweight Dips", type: "reps", weightType: "bodyweight" },
+  { name: "Weighted Dips", type: "reps", weightType: "additional" },
+];
+const GYM_PROG_HORIZ_PUSH = [
+  { name: "Machine Chest Press", type: "reps", weightType: "load" },
+  { name: "Smith Machine Bench Press", type: "reps", weightType: "load" },
+  { name: "Barbell Bench Press", type: "reps", weightType: "load" },
+];
+const GYM_PROG_SHOULDER = [
+  { name: "Smith Machine Shoulder Press", type: "reps", weightType: "load" },
+];
+const GYM_PROG_CORE = [
+  { name: "Cable Crunches", type: "reps", weightType: "load" },
+  { name: "Kneeling Cable Crunches", type: "reps", weightType: "load" },
+  { name: "Straight-Arm Pulldowns", type: "reps", weightType: "load" },
+  { name: "Ab Wheel Rollouts", type: "reps", weightType: null },
+];
+const GYM_PROG_VERT_PULL = [
+  { name: "Assisted Pull-ups", type: "reps", weightType: "assistance" },
+  { name: "Bodyweight Pull-ups", type: "reps", weightType: "bodyweight" },
+  { name: "Weighted Pull-ups", type: "reps", weightType: "additional" },
+];
+const GYM_PROG_HORIZ_PULL = [
+  { name: "Chest Supported Row", type: "reps", weightType: "load" },
+  { name: "Horizontal Machine Row", type: "reps", weightType: "load" },
+];
+const GYM_PROG_SQUAT = [
+  { name: "Smith Machine Squat", type: "reps", weightType: "load" },
+  { name: "Hack Squat Machine", type: "reps", weightType: "load" },
+  { name: "Barbell Back Squat", type: "reps", weightType: "load" },
+];
+const GYM_PROG_GLUTE = [
+  { name: "Barbell Hip Thrust", type: "reps", weightType: "load" },
+  { name: "Single-Leg Barbell Hip Thrust", type: "reps", weightType: "load" },
+];
+const GYM_PROG_CALF = [
+  { name: "Calf Raise Machine", type: "reps", weightType: "load" },
+  { name: "Single-Leg Calf Raise Machine", type: "reps", weightType: "load" },
+];
+
+// ============================================================
 // SLOT LABELS
 // ============================================================
 const SLOT_LABELS = {
@@ -298,6 +343,134 @@ const EXERCISES = {
 };
 
 // ============================================================
+// GYM SLOT LABELS
+// ============================================================
+const GYM_SLOT_LABELS = {
+  push_vert: { label: "Vertical Push", focus: "Dip Family" },
+  push_horiz: { label: "Horizontal Push", focus: "Chest Press" },
+  push_shoulder: { label: "Overhead Press", focus: "Shoulder Press" },
+  push_core: { label: "Core", focus: "Push Emphasis" },
+  pull_vert: { label: "Vertical Pull", focus: "Pull-up Family" },
+  pull_horiz: { label: "Horizontal Pull", focus: "Row" },
+  pull_core: { label: "Core", focus: "Pull Emphasis" },
+  legs_squat: { label: "Squat", focus: "Bilateral Quad" },
+  legs_glute: { label: "Glute", focus: "Posterior Chain" },
+  legs_calf: { label: "Calf", focus: "Calf Endurance" },
+  legs_core: { label: "Core", focus: "Leg Day" },
+};
+
+// ============================================================
+// GYM EXERCISES
+// ============================================================
+const GYM_EXERCISES = {
+  push: [
+    {
+      id: "push_vert",
+      label: "Vertical Push",
+      focus: "Dip Family",
+      note: "Control the negative, drive up explosively.",
+      sets: 3,
+      color: "push",
+      progressions: GYM_PROG_VERT_PUSH,
+    },
+    {
+      id: "push_horiz",
+      label: "Horizontal Push",
+      focus: "Chest Press",
+      note: "Full range of motion. Squeeze at the top.",
+      sets: 3,
+      color: "push",
+      progressions: GYM_PROG_HORIZ_PUSH,
+    },
+    {
+      id: "push_shoulder",
+      label: "Overhead Press",
+      focus: "Shoulder Press",
+      note: "Press to full lockout. Brace core throughout.",
+      sets: 3,
+      color: "push",
+      progressions: GYM_PROG_SHOULDER,
+    },
+    {
+      id: "push_core",
+      label: "Core",
+      focus: "Push Emphasis",
+      note: "Feel the tension.",
+      sets: 2,
+      color: "push",
+      progressions: GYM_PROG_CORE,
+    },
+  ],
+  pull: [
+    {
+      id: "pull_vert",
+      label: "Vertical Pull",
+      focus: "Pull-up Family",
+      note: "Full dead hang at bottom, chin over bar at top.",
+      sets: 3,
+      color: "pull",
+      progressions: GYM_PROG_VERT_PULL,
+    },
+    {
+      id: "pull_horiz",
+      label: "Horizontal Pull",
+      focus: "Row",
+      note: "Squeeze shoulder blades together at peak contraction.",
+      sets: 3,
+      color: "pull",
+      progressions: GYM_PROG_HORIZ_PULL,
+    },
+    {
+      id: "pull_core",
+      label: "Core",
+      focus: "Pull Emphasis",
+      note: "Feel the tension.",
+      sets: 2,
+      color: "pull",
+      progressions: GYM_PROG_CORE,
+    },
+  ],
+  legs: [
+    {
+      id: "legs_squat",
+      label: "Squat",
+      focus: "Bilateral Quad",
+      note: "Full depth. Drive through the heels.",
+      sets: 3,
+      color: "legs",
+      progressions: GYM_PROG_SQUAT,
+    },
+    {
+      id: "legs_glute",
+      label: "Glute",
+      focus: "Posterior Chain",
+      note: "Squeeze hard at top. Full hip extension.",
+      sets: 3,
+      color: "legs",
+      progressions: GYM_PROG_GLUTE,
+    },
+    {
+      id: "legs_calf",
+      label: "Calf",
+      focus: "Calf Endurance",
+      note: "Full range. Pause at the top, stretch at the bottom.",
+      sets: 2,
+      color: "legs",
+      progressions: GYM_PROG_CALF,
+    },
+    {
+      id: "legs_core",
+      label: "Core",
+      focus: "Leg Day",
+      note: "Feel the tension.",
+      sets: 2,
+      color: "legs",
+      progressions: GYM_PROG_CORE,
+    },
+  ],
+};
+
+// ============================================================
 // STATE
 // ============================================================
 let appState = {
@@ -319,6 +492,105 @@ let appState = {
   overrides: [],
   override: null,
   lockedVolumeToday: {},
+  // Gym mode fields
+  mode: "bodyweight",
+  gymVariations: {},
+  gymWeights: {},
+  gymPersonalRecords: {},
+  gymSessionPRs: {},
+  weightUnit: "kg",
+  sessionBodyweight: {},
+};
+
+// ============================================================
+// GYM MODE HELPERS
+// ============================================================
+function isGymMode() {
+  return appState.mode === "gym";
+}
+
+function getActiveExercises() {
+  return isGymMode() ? GYM_EXERCISES : EXERCISES;
+}
+
+function getExercisesForDay(day) {
+  return getActiveExercises()[day] || [];
+}
+
+function getActiveSlotLabels() {
+  return isGymMode() ? GYM_SLOT_LABELS : SLOT_LABELS;
+}
+
+function getVariation(exId) {
+  return isGymMode()
+    ? appState.gymVariations[exId]
+    : appState.variations[exId];
+}
+
+function setVariation(exId, name) {
+  if (isGymMode()) {
+    appState.gymVariations[exId] = name;
+  } else {
+    appState.variations[exId] = name;
+  }
+}
+
+function getProgressionsForSlot(exId) {
+  const exercises = getActiveExercises();
+  const ex = Object.values(exercises).flat().find((e) => e.id === exId);
+  return ex ? ex.progressions : [];
+}
+
+function getActivePersonalRecords() {
+  return isGymMode() ? appState.gymPersonalRecords : appState.personalRecords;
+}
+
+function getActiveSessionPRs() {
+  return isGymMode() ? appState.gymSessionPRs : appState.sessionPRs;
+}
+
+function getWeightType(exId) {
+  if (!isGymMode()) return null;
+  const ex = Object.values(GYM_EXERCISES).flat().find((e) => e.id === exId);
+  if (!ex) return null;
+  const varName = appState.gymVariations[exId] || ex.progressions[0].name;
+  const entry = ex.progressions.find((p) => p.name === varName);
+  return entry?.weightType || null;
+}
+
+function getLastWeight(exId) {
+  const weights = appState.gymWeights || {};
+  const dates = Object.keys(weights).sort().reverse();
+  for (const d of dates) {
+    if (weights[d] && weights[d][exId] !== undefined) {
+      return weights[d][exId];
+    }
+  }
+  return "";
+}
+
+function getWeightLabel(weightType) {
+  if (weightType === "assistance") return "Assistance";
+  if (weightType === "additional") return "Additional Weight";
+  if (weightType === "load") return "Weight";
+  return null;
+}
+
+// ============================================================
+// GYM ONBOARD MAP
+// ============================================================
+const GYM_ONBOARD_MAP = {
+  "ob-gym-push-vert": { prog: () => GYM_PROG_VERT_PUSH, exId: "push_vert" },
+  "ob-gym-push-horiz": { prog: () => GYM_PROG_HORIZ_PUSH, exId: "push_horiz" },
+  "ob-gym-push-shoulder": { prog: () => GYM_PROG_SHOULDER, exId: "push_shoulder" },
+  "ob-gym-push-core": { prog: () => GYM_PROG_CORE, exId: "push_core" },
+  "ob-gym-pull-vert": { prog: () => GYM_PROG_VERT_PULL, exId: "pull_vert" },
+  "ob-gym-pull-horiz": { prog: () => GYM_PROG_HORIZ_PULL, exId: "pull_horiz" },
+  "ob-gym-pull-core": { prog: () => GYM_PROG_CORE, exId: "pull_core" },
+  "ob-gym-legs-squat": { prog: () => GYM_PROG_SQUAT, exId: "legs_squat" },
+  "ob-gym-legs-glute": { prog: () => GYM_PROG_GLUTE, exId: "legs_glute" },
+  "ob-gym-legs-calf": { prog: () => GYM_PROG_CALF, exId: "legs_calf" },
+  "ob-gym-legs-core": { prog: () => GYM_PROG_CORE, exId: "legs_core" },
 };
 
 function getLocalTime() {
@@ -408,6 +680,16 @@ function migrateLegacyOverride() {
 
     appState.override = null;
   }
+}
+
+function migrateGymFields() {
+  if (appState.mode === undefined) appState.mode = "bodyweight";
+  if (!appState.gymVariations) appState.gymVariations = {};
+  if (!appState.gymWeights) appState.gymWeights = {};
+  if (!appState.gymPersonalRecords) appState.gymPersonalRecords = {};
+  if (!appState.gymSessionPRs) appState.gymSessionPRs = {};
+  if (!appState.weightUnit) appState.weightUnit = "kg";
+  if (!appState.sessionBodyweight) appState.sessionBodyweight = {};
 }
 
 // Listen for Auth changes continuously
@@ -538,6 +820,7 @@ function initAppAfterLoad() {
 
   const todayStr = getLocalDateStr();
   migrateLegacyOverride();
+  migrateGymFields();
   if (appState.date !== todayStr) {
     appState.date = todayStr;
     appState.reps = {};
@@ -549,15 +832,14 @@ function initAppAfterLoad() {
     saveState(true);
   }
 
-  Object.values(EXERCISES)
-    .flat()
+  Object.values(getActiveExercises()).flat()
     .forEach((ex) => {
       if (!appState.reps[ex.id]) appState.reps[ex.id] = Array(ex.sets).fill("");
 
       appState.sessionBaseline = appState.sessionBaseline || {};
       if (!appState.sessionBaseline[ex.id]) {
         appState.sessionBaseline[ex.id] =
-          appState.variations[ex.id] || ex.progressions[0].name;
+          getVariation(ex.id);
       }
     });
 
@@ -937,6 +1219,51 @@ function populateOnboardingSelects() {
       sel.value = 0;
     }
   });
+
+  // Gym selects
+  Object.entries(GYM_ONBOARD_MAP).forEach(([selectId, cfg]) => {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const prog = cfg.prog();
+    sel.innerHTML = prog
+      .map((p, i) => `<option value="${i}">${p.name}</option>`)
+      .join("");
+
+    const saved = appState.gymVariations[cfg.exId];
+    if (saved) {
+      const idx = prog.findIndex((p) => p.name === saved);
+      if (idx > -1) sel.value = idx;
+      else sel.value = 0;
+    } else {
+      sel.value = 0;
+    }
+  });
+}
+
+let settingsMode = "bodyweight";
+
+function setSettingsMode(mode) {
+  settingsMode = mode;
+  const bwBtn = document.getElementById("mode-bw");
+  const gymBtn = document.getElementById("mode-gym");
+  const bwSection = document.getElementById("bw-onboard-section");
+  const gymSection = document.getElementById("gym-onboard-section");
+  const unitGroup = document.getElementById("weight-unit-group");
+
+  if (mode === "gym") {
+    bwBtn.classList.remove("active");
+    gymBtn.classList.add("active");
+    if (bwSection) bwSection.style.display = "none";
+    if (gymSection) gymSection.style.display = "block";
+    if (unitGroup) unitGroup.style.display = "block";
+  } else {
+    gymBtn.classList.remove("active");
+    bwBtn.classList.add("active");
+    if (bwSection) bwSection.style.display = "block";
+    if (gymSection) gymSection.style.display = "none";
+    if (unitGroup) unitGroup.style.display = "none";
+  }
+  updateOnboardingPreview();
 }
 
 function computeVariationAssignments() {
@@ -950,22 +1277,37 @@ function computeVariationAssignments() {
   return result;
 }
 
+function computeGymVariationAssignments() {
+  const result = {};
+  Object.entries(GYM_ONBOARD_MAP).forEach(([selectId, cfg]) => {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const prog = cfg.prog();
+    result[cfg.exId] = prog[parseInt(sel.value)].name;
+  });
+  return result;
+}
+
 function updateOnboardingPreview() {
   const preview = document.getElementById("onboard-preview");
   if (!preview) return;
 
+  const useGym = settingsMode === "gym";
+  const exercises = useGym ? GYM_EXERCISES : EXERCISES;
+  const labels = useGym ? GYM_SLOT_LABELS : SLOT_LABELS;
+  const onboardMap = useGym ? GYM_ONBOARD_MAP : ONBOARD_MAP;
+
   const allSlots = [
-    ...EXERCISES.push.map((e) => e.id),
-    ...EXERCISES.pull.map((e) => e.id),
-    ...EXERCISES.legs.map((e) => e.id),
+    ...exercises.push.map((e) => e.id),
+    ...exercises.pull.map((e) => e.id),
+    ...exercises.legs.map((e) => e.id),
   ];
 
   const colorOf = (id) =>
     id.startsWith("push") ? "push" : id.startsWith("pull") ? "pull" : "legs";
 
-  // Read current select values to show preview
   const current = {};
-  Object.entries(ONBOARD_MAP).forEach(([selectId, cfg]) => {
+  Object.entries(onboardMap).forEach(([selectId, cfg]) => {
     const sel = document.getElementById(selectId);
     if (!sel) return;
     const prog = cfg.prog();
@@ -982,8 +1324,8 @@ function updateOnboardingPreview() {
         (id) => `
       <div class="preview-row">
         <div>
-          <div class="preview-slot">${SLOT_LABELS[id].label}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">${SLOT_LABELS[id].focus}</div>
+          <div class="preview-slot">${labels[id]?.label || id}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${labels[id]?.focus || ""}</div>
         </div>
         <div class="preview-val ${colorOf(id)}">${current[id] || "—"}</div>
       </div>
@@ -1002,6 +1344,12 @@ function openSettings(isFirst = false) {
   document.getElementById("close-modal-btn").style.display = isFirst
     ? "none"
     : "block";
+  // Set mode toggle to current mode
+  settingsMode = appState.mode || "bodyweight";
+  setSettingsMode(settingsMode);
+  // Weight unit
+  const unitSel = document.getElementById("setup-weight-unit");
+  if (unitSel) unitSel.value = appState.weightUnit || "kg";
   document.getElementById("settings-modal").classList.add("show");
   populateOnboardingSelects();
   updateOnboardingPreview();
@@ -1036,13 +1384,21 @@ function executeSaveSettings() {
   // 3. Update State
   appState.name = nameVal;
   appState.split = splitVal;
+  appState.mode = settingsMode;
+  const unitSel = document.getElementById("setup-weight-unit");
+  if (unitSel) appState.weightUnit = unitSel.value;
 
   // 4. Apply Exercises from Dropdowns (This overwrites current levels)
   const assignments = computeVariationAssignments();
   Object.assign(appState.variations, assignments);
 
+  // 4b. Gym variations
+  const gymAssignments = computeGymVariationAssignments();
+  Object.assign(appState.gymVariations, gymAssignments);
+
   // 5. Reset Reps for the new routine structure
-  Object.values(EXERCISES)
+  const exercises = getActiveExercises();
+  Object.values(exercises)
     .flat()
     .forEach((ex) => {
       appState.reps[ex.id] = Array(ex.sets).fill("");
@@ -1053,6 +1409,7 @@ function executeSaveSettings() {
   appState.sessionBaseline = {}; // 🚨 Force fresh snapshot
   saveState();
 
+  updateModeButton();
   initUI(); // Re-render the app
 
   showToast(
@@ -1187,15 +1544,35 @@ function confirmResetToday() {
     delete appState.sessionPRs[todayStr];
   }
 
+  // Roll back gym PRs too
+  const gymSessionPRs = appState.gymSessionPRs?.[todayStr];
+  if (gymSessionPRs) {
+    Object.entries(gymSessionPRs).forEach(([varName, priorPR]) => {
+      if (priorPR) {
+        appState.gymPersonalRecords[varName] = priorPR;
+      } else if (appState.gymPersonalRecords) {
+        delete appState.gymPersonalRecords[varName];
+      }
+    });
+    delete appState.gymSessionPRs[todayStr];
+  }
+
   // Restore all variations to session baseline
   if (appState.sessionBaseline && Object.keys(appState.sessionBaseline).length > 0) {
-    Object.assign(appState.variations, appState.sessionBaseline);
+    if (isGymMode()) {
+      Object.assign(appState.gymVariations, appState.sessionBaseline);
+    } else {
+      Object.assign(appState.variations, appState.sessionBaseline);
+    }
   }
 
   // Wipe all reps across every exercise
-  Object.values(EXERCISES).flat().forEach((ex) => {
+  Object.values(getActiveExercises()).flat().forEach((ex) => {
     appState.reps[ex.id] = Array(ex.sets).fill("");
   });
+
+  // Wipe gym weights for today
+  if (appState.gymWeights) delete appState.gymWeights[todayStr];
 
   // Clear ALL today's override entries (not just the last one)
   appState.overrides = (appState.overrides || []).filter((o) => o.date !== todayStr);
@@ -1244,12 +1621,14 @@ function openFinishModal(dayType) {
   pendingFinishType = type;
 
   if (type && type !== "rest") {
-    EXERCISES[type].forEach((ex) => {
+    const dayExs = getExercisesForDay(type);
+    const slotLabels = getActiveSlotLabels();
+    dayExs.forEach((ex) => {
       const vals = appState.reps[ex.id] || [];
 
       const totalReps = vals.reduce((a, b) => a + (parseInt(b) || 0), 0);
       if (totalReps === 0) {
-        skippedExercises.push(SLOT_LABELS[ex.id]?.label || ex.id);
+        skippedExercises.push(slotLabels[ex.id]?.label || ex.id);
       }
 
       const varType = getVarType(ex.id);
@@ -1258,11 +1637,10 @@ function openFinishModal(dayType) {
       const baseline =
         appState.sessionBaseline[ex.id] || ex.progressions[0].name;
       const isOnBaseline =
-        (appState.variations[ex.id] || ex.progressions[0].name) === baseline;
+        getVariation(ex.id) === baseline;
 
       if (anySetHit50 && isOnBaseline) {
-        const currentName =
-          appState.variations[ex.id] || ex.progressions[0].name;
+        const currentName = getVariation(ex.id);
         const currentIdx = ex.progressions.findIndex(
           (p) => p.name === currentName,
         );
@@ -1277,7 +1655,7 @@ function openFinishModal(dayType) {
             <div class="upgrade-item">
               <input type="checkbox" class="upgrade-check" id="upg-${ex.id}" checked>
               <div class="upgrade-text">
-                <strong>${SLOT_LABELS[ex.id]?.label || ex.id}</strong>
+                <strong>${slotLabels[ex.id]?.label || ex.id}</strong>
                 <span class="upgrade-arrow">${currentName} → ${next.name}</span>
               </div>
             </div>`;
@@ -1332,19 +1710,28 @@ async function confirmFinish() {
 
   // 1. Snapshot reps NOW before anything touches them
   const repSnapshot = {};
-  if (type && type !== "rest") {
-    EXERCISES[type].forEach((ex) => {
-      repSnapshot[ex.id] = [...(appState.reps[ex.id] || [])];
+  const dayExs = (type && type !== "rest") ? getExercisesForDay(type) : [];
+  dayExs.forEach((ex) => {
+    repSnapshot[ex.id] = [...(appState.reps[ex.id] || [])];
+  });
+
+  // Snapshot weights for gym mode
+  const weightSnapshot = {};
+  if (isGymMode() && type && type !== "rest") {
+    dayExs.forEach((ex) => {
+      const w = appState.gymWeights?.[todayStr]?.[ex.id];
+      if (w !== undefined) weightSnapshot[ex.id] = w;
     });
   }
 
   // 2. Snapshot variations BEFORE applying upgrades
-  const preUpgradeVariations = { ...appState.variations };
+  const variationsObj = isGymMode() ? appState.gymVariations : appState.variations;
+  const preUpgradeVariations = { ...variationsObj };
 
   // 3. Restore NFI baselines so next session reverts to normal
   if (appState.nfiBaselines) {
     Object.keys(appState.nfiBaselines).forEach((exId) => {
-      appState.variations[exId] = appState.nfiBaselines[exId];
+      setVariation(exId, appState.nfiBaselines[exId]);
     });
     appState.nfiBaselines = {};
   }
@@ -1357,7 +1744,7 @@ async function confirmFinish() {
   pendingUpgrades.forEach((upg) => {
     const cb = document.getElementById("upg-" + upg.id);
     if (cb && cb.checked) {
-      appState.variations[upg.id] = upg.name;
+      setVariation(upg.id, upg.name);
       appState.upgradedExercises[todayStr].push(upg.id);
       upgradeCount++;
     }
@@ -1392,20 +1779,23 @@ async function confirmFinish() {
     // Calculate volume for this session from the rep snapshot
     let sessionTotal = 0;
     const sessionExercises = {};
-    if (type && EXERCISES[type]) {
-      EXERCISES[type].forEach((ex) => {
-        const sets = (repSnapshot[ex.id] || []).map((v) => parseInt(v) || 0);
-        const exTotal = sets.reduce((a, b) => a + b, 0);
-        sessionTotal += exTotal;
-        if (exTotal > 0) {
-          sessionExercises[ex.id] = {
-            sets,
-            total: exTotal,
-            variation: preUpgradeVariations[ex.id] || ex.progressions[0].name,
-          };
+    dayExs.forEach((ex) => {
+      const sets = (repSnapshot[ex.id] || []).map((v) => parseInt(v) || 0);
+      const exTotal = sets.reduce((a, b) => a + b, 0);
+      sessionTotal += exTotal;
+      if (exTotal > 0) {
+        const exData = {
+          sets,
+          total: exTotal,
+          variation: preUpgradeVariations[ex.id] || ex.progressions[0].name,
+        };
+        if (isGymMode() && weightSnapshot[ex.id] !== undefined) {
+          exData.weight = weightSnapshot[ex.id];
+          exData.weightUnit = appState.weightUnit;
         }
-      });
-    }
+        sessionExercises[ex.id] = exData;
+      }
+    });
 
     // Track locked volume separately so updateDailyVolume can't corrupt it
     appState.lockedVolumeToday = appState.lockedVolumeToday || {};
@@ -1425,30 +1815,61 @@ async function confirmFinish() {
         exercises: sessionExercises,
         type,
         split: appState.split,
+        mode: appState.mode,
       };
     }
   }
 
   // 8. Snapshot pre-session PRs for rollback (only record baseline — don't overwrite if already set)
-  appState.sessionPRs = appState.sessionPRs || {};
-  if (!appState.sessionPRs[todayStr]) appState.sessionPRs[todayStr] = {};
-  if (type && type !== "rest") {
-    EXERCISES[type].forEach((ex) => {
-      const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
-      const prevPR = appState.personalRecords?.[varName];
-      // Only snapshot the very first time we see this variation today
-      if (!appState.sessionPRs[todayStr].hasOwnProperty(varName)) {
-        appState.sessionPRs[todayStr][varName] = prevPR || null;
-      }
-    });
-  }
+  const prStore = isGymMode() ? "gymPersonalRecords" : "personalRecords";
+  const sessionPRStore = isGymMode() ? "gymSessionPRs" : "sessionPRs";
+  appState[sessionPRStore] = appState[sessionPRStore] || {};
+  if (!appState[sessionPRStore][todayStr]) appState[sessionPRStore][todayStr] = {};
+  dayExs.forEach((ex) => {
+    const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
+    const prevPR = appState[prStore]?.[varName];
+    if (!appState[sessionPRStore][todayStr].hasOwnProperty(varName)) {
+      appState[sessionPRStore][todayStr][varName] = prevPR || null;
+    }
+  });
 
   // 9. Record new PRs using the rep snapshot
   const newPRs = [];
-  if (type && type !== "rest") {
-    EXERCISES[type].forEach((ex) => {
+  if (!appState[prStore]) appState[prStore] = {};
+
+  if (isGymMode()) {
+    // Gym PR: more reps at same weight OR more weight at same reps
+    dayExs.forEach((ex) => {
       const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
-      if (!appState.personalRecords) appState.personalRecords = {};
+      const bestSet = Math.max(...(repSnapshot[ex.id] || []).map(v => parseInt(v) || 0));
+      const sessionWeight = weightSnapshot[ex.id] ?? 0;
+      if (bestSet <= 0) return;
+
+      const prev = appState[prStore][varName];
+      let isPR = false;
+      if (!prev) {
+        isPR = true;
+      } else if (sessionWeight > (prev.weight || 0) && bestSet >= (prev.value || 0)) {
+        isPR = true;
+      } else if (sessionWeight >= (prev.weight || 0) && bestSet > (prev.value || 0)) {
+        isPR = true;
+      }
+
+      if (isPR) {
+        appState[prStore][varName] = {
+          value: bestSet,
+          unit: "reps",
+          weight: sessionWeight,
+          weightUnit: appState.weightUnit,
+        };
+        const wStr = sessionWeight > 0 ? ` @ ${sessionWeight}${appState.weightUnit}` : "";
+        newPRs.push(`${varName}: ${bestSet} reps${wStr}`);
+      }
+    });
+  } else {
+    // BW PR: highest single set
+    dayExs.forEach((ex) => {
+      const varName = preUpgradeVariations[ex.id] || ex.progressions[0].name;
       const varType = (() => {
         const entry = ex.progressions.find((p) => p.name === varName);
         return entry?.type || "reps";
@@ -1456,9 +1877,9 @@ async function confirmFinish() {
       (repSnapshot[ex.id] || []).forEach((v) => {
         const val = parseInt(v);
         if (!isNaN(val) && val > 0) {
-          const prev = appState.personalRecords[varName]?.value || 0;
+          const prev = appState[prStore][varName]?.value || 0;
           if (val > prev) {
-            appState.personalRecords[varName] = {
+            appState[prStore][varName] = {
               value: val,
               unit: varType === "hold" ? "s" : "reps",
             };
@@ -1470,11 +1891,9 @@ async function confirmFinish() {
   }
 
   // 10. Clear reps for this block so next override session starts clean
-  if (type && type !== "rest") {
-    EXERCISES[type].forEach((ex) => {
-      appState.reps[ex.id] = Array(ex.sets).fill("");
-    });
-  }
+  dayExs.forEach((ex) => {
+    appState.reps[ex.id] = Array(ex.sets).fill("");
+  });
 
   await saveState();
   closeFinishModal();
@@ -1517,11 +1936,21 @@ function buildPRCategoryMap() {
   return map;
 }
 
+function buildGymPRCategoryMap() {
+  const map = {};
+  Object.values(GYM_EXERCISES).flat().forEach((ex) => {
+    ex.progressions.forEach((p) => {
+      map[p.name] = ex.color;
+    });
+  });
+  return map;
+}
+
 let activePRFilter = 'push';
 
 function setPRFilter(filter) {
   activePRFilter = filter;
-  ['push', 'pull', 'legs', 'core'].forEach((f) => {
+  ['push', 'pull', 'legs', 'core', 'gym'].forEach((f) => {
     const btn = document.getElementById('pr-filter-' + f);
     if (!btn) return;
     btn.classList.toggle('active', f === filter);
@@ -1530,8 +1959,39 @@ function setPRFilter(filter) {
 }
 
 function renderPRList() {
-  const prs = appState.personalRecords || {};
   const list = document.getElementById('pr-list');
+
+  if (activePRFilter === 'gym') {
+    // Gym PR view
+    const prs = appState.gymPersonalRecords || {};
+    const gymMap = buildGymPRCategoryMap();
+    const filtered = Object.keys(prs).filter((k) => gymMap[k]);
+
+    if (filtered.length === 0) {
+      list.innerHTML =
+        '<div style="text-align:center;padding:32px 20px;color:var(--muted);font-size:14px;">' +
+        'No Gym records yet. Complete a gym session to start tracking.</div>';
+      return;
+    }
+
+    const sorted = [...filtered].sort((a, b) => (prs[b]?.value || 0) - (prs[a]?.value || 0));
+    list.innerHTML = sorted.map((k) => {
+      const pr = prs[k];
+      const colorVar = gymMap[k] ? `var(--${gymMap[k]})` : 'var(--gold)';
+      const wStr = pr.weight ? ` @ ${pr.weight}${pr.weightUnit || 'kg'}` : '';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;' +
+        'padding:14px 0;border-bottom:1px solid var(--border);">' +
+        '<span style="font-size:14px;color:var(--text);line-height:1.3">' + k + '</span>' +
+        '<span style="font-family:Syne,sans-serif;font-size:22px;font-weight:700;' +
+        'color:' + colorVar + ';white-space:nowrap;margin-left:12px">' +
+        pr.value + ' <span style="font-size:11px;color:var(--muted);font-family:Outfit,sans-serif">' +
+        'reps' + wStr + '</span></span></div>';
+    }).join('');
+    return;
+  }
+
+  // BW PR view (original logic)
+  const prs = appState.personalRecords || {};
   const catMap = buildPRCategoryMap();
   const filtered = Object.keys(prs).filter((k) => catMap[k] === activePRFilter);
 
@@ -1693,10 +2153,12 @@ function buildWeekStrip() {
 }
 
 function getVarType(exId) {
-  const ex = Object.values(EXERCISES)
+  const exercises = getActiveExercises();
+  const ex = Object.values(exercises)
     .flat()
     .find((e) => e.id === exId);
-  const varName = appState.variations[exId] || ex.progressions[0].name;
+  if (!ex) return "reps";
+  const varName = getVariation(exId) || ex.progressions[0].name;
   const entry = ex.progressions.find((p) => p.name === varName);
   return entry?.type || "reps";
 }
@@ -1735,7 +2197,10 @@ function buildExerciseList(day) {
   // A block is locked if: the scheduled session is done (completed flag), OR this specific override is done
   const thisBlockLocked = (isScheduledToday && isDayComplete) || isCompletedOverride;
 
-  EXERCISES[day].forEach((ex) => {
+  const dayExercises = getExercisesForDay(day);
+  const slotLabels = getActiveSlotLabels();
+
+  dayExercises.forEach((ex) => {
     const row = document.createElement("div");
     row.className = "ex-row";
     row.id = `row-${ex.id}`;
@@ -1744,15 +2209,15 @@ function buildExerciseList(day) {
     const sessionVariations =
       thisBlockLocked && appState.completedVariations?.[todayStr]
         ? appState.completedVariations[todayStr]
-        : appState.variations;
+        : (isGymMode() ? appState.gymVariations : appState.variations);
 
-    const slotInfo = SLOT_LABELS[ex.id];
+    const slotInfo = slotLabels[ex.id] || { label: ex.label, focus: ex.focus };
     const vals = appState.reps[ex.id] || [];
     const varType = getVarType(ex.id);
     const threshold = varType === "hold" ? 60 : 50;
     const hitTarget = vals.some((v) => parseInt(v) >= threshold);
 
-    const currentName = appState.variations[ex.id] || ex.progressions[0].name;
+    const currentName = getVariation(ex.id) || ex.progressions[0].name;
     const completedVariationName =
       appState.completedVariations?.[todayStr]?.[ex.id] || currentName;
     const baseName =
@@ -1839,11 +2304,34 @@ function buildExerciseList(day) {
       : currentName;
     const displayVariationIdx = thisBlockLocked ? completedIdx : currentIdx;
 
+    // Gym mode: weight input
+    let weightInputHTML = "";
+    if (isGymMode()) {
+      const wt = getWeightType(ex.id);
+      const wLabel = getWeightLabel(wt);
+      if (wLabel) {
+        const todayWeight = appState.gymWeights?.[todayStr]?.[ex.id];
+        const weightVal = todayWeight !== undefined ? todayWeight : getLastWeight(ex.id);
+        const isWDisabled = thisBlockLocked || !isTodayBlock;
+        weightInputHTML = `
+          <div class="weight-input-row">
+            <span class="rt-label">${wLabel}</span>
+            <input type="number" class="weight-input" id="weight-${ex.id}"
+              placeholder="0" value="${weightVal}" step="0.5"
+              ${isWDisabled ? "disabled" : ""}
+              oninput="handleWeightInput('${ex.id}')">
+            <span class="weight-unit">${appState.weightUnit}</span>
+          </div>`;
+      }
+    }
+
+    const gymBadgeHTML = isGymMode() ? `<span class="gym-badge">GYM</span>` : "";
+
     row.innerHTML = `
       <div class="ex-top">
         <div class="ex-info">
           <div class="ex-name-row">
-            <span class="ex-category">${slotInfo.focus}</span>
+            <span class="ex-category">${slotInfo.focus}</span>${gymBadgeHTML}
           </div>
           <div class="ex-name" id="ex-name-${ex.id}">${displayVariationName}</div>
           <div class="ex-variation-tag">
@@ -1857,6 +2345,7 @@ function buildExerciseList(day) {
           ${ex.sets} sets · <span style="font-size:14px;opacity:0.7;letter-spacing:0.5px">${varType === "hold" ? "30–60s hold" : "30–50 reps"}</span>
         </div>
       </div>
+      ${weightInputHTML}
       <div class="rep-tracker">
         <span class="rt-label">${varType === "hold" ? "Log Secs" : "Log Reps"}</span>
         <div class="rep-sets">${setsHTML}</div>
@@ -1950,9 +2439,20 @@ function updateRepProgress(exId, sets, color) {
   return total;
 }
 
+function handleWeightInput(exId) {
+  const inp = document.getElementById(`weight-${exId}`);
+  if (!inp) return;
+  const val = parseFloat(inp.value);
+  const todayStr = getLocalDateStr();
+  if (!appState.gymWeights) appState.gymWeights = {};
+  if (!appState.gymWeights[todayStr]) appState.gymWeights[todayStr] = {};
+  appState.gymWeights[todayStr][exId] = isNaN(val) ? 0 : val;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveState(true); }, 1000);
+}
+
 function handleRepInput(exId, setIdx, color) {
-  const ex = Object.values(EXERCISES)
-    .flat()
+  const ex = Object.values(getActiveExercises()).flat()
     .find((e) => e.id === exId);
   const inp = document.getElementById(`inp-${exId}-${setIdx}`);
 
@@ -1980,7 +2480,7 @@ function updateDailyVolume() {
   let liveTotal = 0;
   const exercises = {};
 
-  const activeSets = type ? EXERCISES[type] : Object.values(EXERCISES).flat();
+  const activeSets = type ? getExercisesForDay(type) : Object.values(getActiveExercises()).flat();
   activeSets.forEach((ex) => {
     const sets = (appState.reps[ex.id] || []).map((v) => {
       const p = parseInt(v);
@@ -1991,7 +2491,7 @@ function updateDailyVolume() {
     if (exTotal > 0) {
       exercises[ex.id] = {
         sets,
-        variation: appState.variations[ex.id] || ex.progressions[0].name,
+        variation: getVariation(ex.id),
         total: exTotal,
       };
     }
@@ -2139,11 +2639,15 @@ function executeImport() {
       personalRecords: {}, completedVariations: {}, lastMissedAcknowledged: "",
       nfiBaselines: {}, sessionBaseline: {}, upgradedExercises: {},
       overrides: [], override: null, lockedVolumeToday: {},
+      mode: "bodyweight", gymVariations: {}, gymWeights: {},
+      gymPersonalRecords: {}, gymSessionPRs: {}, weightUnit: "kg",
+      sessionBodyweight: {},
     };
     appState = { ...freshDefaults, ...pendingImportData };
 
     // Run legacy migration in case the backup has the old single override field
     migrateLegacyOverride();
+    migrateGymFields();
 
     saveState();
     document.getElementById("settings-modal").classList.remove("show");
@@ -2414,7 +2918,7 @@ function toggleBlock(day) {
   if (blockOpen[day]) {
     if (!blockBuilt[day]) {
       buildExerciseList(day);
-      EXERCISES[day].forEach((ex) =>
+      getExercisesForDay(day).forEach((ex) =>
         updateRepProgress(ex.id, ex.sets, ex.color),
       );
       blockBuilt[day] = true;
@@ -2451,8 +2955,7 @@ function showToast(icon, msg) {
 // ============================================================
 
 function openNotFeelingIt(exId) {
-  const ex = Object.values(EXERCISES)
-    .flat()
+  const ex = Object.values(getActiveExercises()).flat()
     .find((e) => e.id === exId);
   const baseline = appState.sessionBaseline[exId] || ex.progressions[0].name;
   const baselineIdx = ex.progressions.findIndex((p) => p.name === baseline);
@@ -2493,14 +2996,13 @@ function openNotFeelingIt(exId) {
 }
 
 function confirmNotFeelingIt(exId, targetName) {
-  const ex = Object.values(EXERCISES)
-    .flat()
+  const ex = Object.values(getActiveExercises()).flat()
     .find((e) => e.id === exId);
 
   // Lock in the real baseline BEFORE overwriting variations
   if (!appState.sessionBaseline[exId]) {
     appState.sessionBaseline[exId] =
-      appState.variations[exId] || ex.progressions[0].name;
+      getVariation(exId);
   }
   const trueBaseline = appState.sessionBaseline[exId];
 
@@ -2510,12 +3012,12 @@ function confirmNotFeelingIt(exId, targetName) {
   appState.nfiBaselines[exId] = trueBaseline;
 
   appState.reps[exId] = Array(ex.sets).fill("");
-  appState.variations[exId] = targetName;
+  setVariation(exId, targetName);
 
   appState.sessionBaseline[exId] = trueBaseline;
 
   appState.reps[exId] = Array(ex.sets).fill("");
-  appState.variations[exId] = targetName;
+  setVariation(exId, targetName);
 
   // Immediately re-assert baseline in case saveState/initUI clobbers it
   appState.sessionBaseline[exId] = trueBaseline;
@@ -2527,7 +3029,7 @@ function confirmNotFeelingIt(exId, targetName) {
   const baseType = getSchedule()[today].type;
   const type = getActiveOverrideType() || (baseType !== "rest" ? baseType : "push");
   buildExerciseList(type);
-  EXERCISES[type].forEach((e) => updateRepProgress(e.id, e.sets, e.color));
+  getExercisesForDay(type).forEach((e) => updateRepProgress(e.id, e.sets, e.color));
   updateDailyVolume();
   openBlock(type);
   appState.sessionBaseline[exId] = trueBaseline;
@@ -2539,12 +3041,11 @@ function confirmNotFeelingIt(exId, targetName) {
 }
 
 function revertToBaseline(exId) {
-  const ex = Object.values(EXERCISES)
-    .flat()
+  const ex = Object.values(getActiveExercises()).flat()
     .find((e) => e.id === exId);
   const baseline = appState.sessionBaseline[exId] || ex.progressions[0].name;
   appState.reps[exId] = Array(ex.sets).fill("");
-  appState.variations[exId] = baseline;
+  setVariation(exId, baseline);
   if (appState.nfiBaselines) delete appState.nfiBaselines[exId];
 
   saveState();
@@ -2553,7 +3054,7 @@ function revertToBaseline(exId) {
   const baseType = getSchedule()[today].type;
   const type = getActiveOverrideType() || (baseType !== "rest" ? baseType : "push");
   buildExerciseList(type);
-  EXERCISES[type].forEach((e) => updateRepProgress(e.id, e.sets, e.color));
+  getExercisesForDay(type).forEach((e) => updateRepProgress(e.id, e.sets, e.color));
   updateDailyVolume();
   openBlock(type);
 
@@ -2598,8 +3099,7 @@ function renderTacticalAnalysis() {
       const min3 = Math.min(...recent3);
       const improvement = min3 > 0 ? ((max3 - min3) / min3) * 100 : 0;
       if (improvement < 5 && max3 > 0) {
-        const exData = Object.values(EXERCISES)
-          .flat()
+        const exData = Object.values(getActiveExercises()).flat()
           .find((e) => e.id === exId);
         if (exData) plateaus.push({ name: exData.label, reps: recent3[0] });
       }
@@ -2623,15 +3123,15 @@ function renderTacticalAnalysis() {
   let levelUpTargets = [];
   let seenExNames = new Set(); // Prevent duplicate entries like "Plank" showing up twice
 
-  Object.values(EXERCISES)
-    .flat()
+  Object.values(getActiveExercises()).flat()
     .forEach((ex) => {
-      const varName = appState.variations[ex.id] || ex.progressions[0].name;
+      const varName = getVariation(ex.id);
 
       // Skip if we already tracked this exact variation
       if (seenExNames.has(varName)) return;
 
-      const pr = appState.personalRecords?.[varName]?.value || 0;
+      const activePRs = getActivePersonalRecords();
+      const pr = activePRs[varName]?.value || 0;
       const baselineIdx = ex.progressions.findIndex((p) => p.name === varName);
       const hasNext =
         baselineIdx > -1 && baselineIdx < ex.progressions.length - 1;
@@ -2708,6 +3208,7 @@ function renderStats() {
   const hist = appState.history || {};
   const todayStr = getLocalDateStr();
   const prs = appState.personalRecords || {};
+  const gymPrs = appState.gymPersonalRecords || {};
 
   // Total sessions
   const totalSessions = Object.keys(appState.completed || {}).length;
@@ -2764,7 +3265,7 @@ function renderStats() {
   let daysSincePR = null;
   let lastPRDate = null;
   // We don't store PR dates yet so show total PR count instead
-  const totalPRs = Object.keys(prs).length;
+  const totalPRs = Object.keys(prs).length + Object.keys(gymPrs).length;
 
   // Missed sessions last 30 days — only count days after first session
   let missedSessions = 0;
@@ -2885,6 +3386,106 @@ function saveNewName() {
 }
 
 // ============================================================
+// MODE SWITCHING & BODYWEIGHT POPUP
+// ============================================================
+
+function updateModeButton() {
+  const btn = document.getElementById("mode-switch-btn");
+  if (!btn) return;
+  if (!appState.onboarded) { btn.style.display = "none"; return; }
+  btn.style.display = "";
+  btn.innerHTML = isGymMode()
+    ? `<span style="font-size:20px">🏠</span>`
+    : `<span style="font-size:20px">🏋️</span>`;
+  btn.title = isGymMode() ? "Switch to Bodyweight" : "Switch to Gym";
+
+  // Show/hide gym PR tab
+  const gymPRBtn = document.getElementById("pr-filter-gym");
+  if (gymPRBtn) {
+    gymPRBtn.style.display = Object.keys(appState.gymPersonalRecords || {}).length > 0 ? "" : "none";
+  }
+}
+
+function requestModeSwitch() {
+  const targetMode = isGymMode() ? "bodyweight" : "gym";
+  const modal = document.getElementById("mode-switch-modal");
+  if (!modal) return;
+
+  // If switching to gym and no gym variations set, go straight to settings
+  if (targetMode === "gym" && Object.keys(appState.gymVariations || {}).length === 0) {
+    appState.mode = "gym";
+    saveState(true);
+    openSettings(false);
+    return;
+  }
+
+  const title = modal.querySelector("h2");
+  const sub = modal.querySelector("p");
+  if (title) title.textContent = `Switch to ${targetMode === "gym" ? "Gym" : "Bodyweight"} Mode?`;
+  if (sub) sub.textContent = `Today's unsaved reps will be cleared. Your ${isGymMode() ? "gym" : "bodyweight"} progress is always preserved.`;
+  modal.classList.add("show");
+}
+
+function executeModeSwitch() {
+  const targetMode = isGymMode() ? "bodyweight" : "gym";
+  appState.mode = targetMode;
+
+  // Clear today's reps
+  const todayStr = getLocalDateStr();
+  Object.values(getActiveExercises()).flat().forEach((ex) => {
+    appState.reps[ex.id] = Array(ex.sets).fill("");
+  });
+  appState.sessionBaseline = {};
+
+  // Re-snapshot baselines for new mode
+  Object.values(getActiveExercises()).flat().forEach((ex) => {
+    appState.sessionBaseline[ex.id] = getVariation(ex.id);
+  });
+
+  saveState(true);
+  document.getElementById("mode-switch-modal")?.classList.remove("show");
+  initUI();
+  showToast("🔄", `<strong>Switched to ${targetMode === "gym" ? "Gym" : "Bodyweight"} mode.</strong>`);
+}
+
+function closeModeSwitch() {
+  document.getElementById("mode-switch-modal")?.classList.remove("show");
+}
+
+function showBodyweightPopup() {
+  const modal = document.getElementById("bw-popup-modal");
+  if (!modal) return;
+  const inp = document.getElementById("bw-popup-input");
+  if (inp) {
+    inp.value = "";
+    const unitLabel = modal.querySelector(".weight-unit");
+    if (unitLabel) unitLabel.textContent = appState.weightUnit || "kg";
+  }
+  modal.classList.add("show");
+}
+
+function saveSessionBodyweight() {
+  const inp = document.getElementById("bw-popup-input");
+  if (!inp) return;
+  const val = parseFloat(inp.value);
+  if (isNaN(val) || val <= 0) {
+    showToast("⚠️", "Enter a valid bodyweight.");
+    return;
+  }
+  const todayStr = getLocalDateStr();
+  if (!appState.sessionBodyweight) appState.sessionBodyweight = {};
+  appState.sessionBodyweight[todayStr] = { value: val, unit: appState.weightUnit };
+  saveState(true);
+  document.getElementById("bw-popup-modal")?.classList.remove("show");
+  showToast("✅", `<strong>Bodyweight logged:</strong> ${val} ${appState.weightUnit}`);
+}
+
+function skipBodyweightPopup() {
+  document.getElementById("bw-popup-modal")?.classList.remove("show");
+  showToast("💡", "Reminder: You can log your bodyweight anytime from settings.");
+}
+
+// ============================================================
 // INIT
 // ============================================================
 function initUI() {
@@ -2897,12 +3498,11 @@ function initUI() {
   const isDayComplete = !!appState.completed[todayStr];
   if (!isDayComplete) {
     appState.sessionBaseline = appState.sessionBaseline || {};
-    Object.values(EXERCISES)
-      .flat()
+    Object.values(getActiveExercises()).flat()
       .forEach((ex) => {
         if (!appState.sessionBaseline[ex.id]) {
           appState.sessionBaseline[ex.id] =
-            appState.variations[ex.id] || ex.progressions[0].name;
+            getVariation(ex.id);
         }
       });
   }
@@ -2915,11 +3515,14 @@ function initUI() {
   const buildNow = baseType !== "rest"
     ? baseType
     : (activeOverrideType || "push");
-  // Always rebuild all three blocks so no block ever retains stale DOM
-  // (e.g. old Finish button persisting after a session is locked and block is collapsed)
-  ["push", "pull", "legs"].forEach((day) => {
+
+  // Determine which day tabs to build based on mode
+  const dayTabs = isGymMode()
+    ? ["push", "pull", "legs"]
+    : ["push", "pull", "legs"];
+  dayTabs.forEach((day) => {
     buildExerciseList(day);
-    EXERCISES[day].forEach((ex) => updateRepProgress(ex.id, ex.sets, ex.color));
+    getExercisesForDay(day).forEach((ex) => updateRepProgress(ex.id, ex.sets, ex.color));
     blockBuilt[day] = true;
     // Re-apply open styling for blocks that are currently open
     if (blockOpen[day]) {
@@ -2931,6 +3534,9 @@ function initUI() {
       if (toggle) toggle.textContent = '▾';
     }
   });
+
+  updateModeButton();
+
   setTimeout(() => {
     renderGraph();
     renderStats();
@@ -2958,6 +3564,9 @@ function initUI() {
         "💪",
         `<strong>Today is ${sess.label} Day, ${appState.name}.</strong><br>Track your reps and chase the pump.`,
       );
+      if (isGymMode() && !appState.sessionBodyweight?.[todayStr]) {
+        setTimeout(() => showBodyweightPopup(), 1500);
+      }
     } else if (activeOverrideForToast) {
       openBlock(activeOverrideForToast);
       document
